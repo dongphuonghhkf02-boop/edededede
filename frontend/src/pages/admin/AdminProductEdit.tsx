@@ -8,6 +8,8 @@ import {
   adminPatchProduct,
   adminUploadProductImage,
   type BulletItem,
+  type DescriptionBlock,
+  type FeatureChip,
   type Product,
   type ProductCategory,
   type TabBlock,
@@ -15,6 +17,20 @@ import {
 import styles from "./AdminProductEdit.module.css";
 
 const EMPTY_TAB = (title: string): TabBlock => ({ title, intro: "", items: [], note: "" });
+
+const EMPTY_DESCRIPTION = (): DescriptionBlock => ({
+  hero_image: "/tree.webp",
+  title_line1: "Відновлення",
+  title_line2: "після стресу.",
+  title_subline: "Стабільний врожай.",
+  chips: [
+    { icon: "lightning", title: "Швидке відновлення",       body: "",  variant: "green" },
+    { icon: "eco",       title: "Ідеальний pH-баланс води", body: "",  variant: "dark"  },
+    { icon: "drop",      title: "Покращення поглинання",    body: "",  variant: "cream" },
+  ],
+  problem:  { title: "Проблема", intro_html: "", outro_html: "" },
+  solution: { title: "Рішення",  intro_html: "", outro_html: "" },
+});
 
 type FormState = {
   name: string;
@@ -35,6 +51,7 @@ type FormState = {
   sort_order: number;
   description_html: string;
   description_image: string;
+  description: DescriptionBlock;
   dosage: TabBlock;
   composition: TabBlock;
   compatibility: TabBlock;
@@ -63,6 +80,7 @@ const BASE: FormState = {
   sort_order: 0,
   description_html: "",
   description_image: "",
+  description: EMPTY_DESCRIPTION(),
   dosage: EMPTY_TAB("Дозування"),
   composition: EMPTY_TAB("Склад"),
   compatibility: EMPTY_TAB("Сумісність"),

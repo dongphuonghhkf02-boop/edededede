@@ -89,6 +89,7 @@ from products import (  # noqa: E402
     build_products_router,
     seed_products_if_empty,
     seed_product_categories_if_empty,
+    backfill_product_descriptions,
     UPLOAD_DIR as PRODUCTS_UPLOAD_DIR,
 )
 from fastapi.staticfiles import StaticFiles  # noqa: E402
@@ -336,6 +337,13 @@ async def seed_test_account():
         await seed_products_if_empty(db)
     except Exception as e:
         logger.warning(f"[seed] products skipped: {e}")
+
+    # Migration: backfill `description` block for products created before the schema upgrade.
+    # Idempotent — only updates documents missing the new fields.
+    try:
+        await backfill_product_descriptions(db)
+    except Exception as e:
+        logger.warning(f"[migrate] backfill description skipped: {e}")
 
 
 @app.get("/api/auth/test-credentials")

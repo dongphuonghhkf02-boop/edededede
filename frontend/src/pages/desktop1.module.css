@@ -266,6 +266,160 @@
   object-fit: cover;
 }
 .tabList li b { color: #1b4332; }
+
+/* =================================================================
+   Rich tabs (Дозування / Склад / Сумісність / Характеристика)
+   Card-based design that matches the global system.
+   ================================================================= */
+.richTabWrapper {
+  --accent-bg: #f7fae8;
+  --accent-line: #b3d217;
+  --accent-fg: #1b4332;
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #e7ebe7;
+  border-radius: 24px;
+  padding: 48px 56px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  box-shadow: 0 2px 0 rgba(28,30,17,0.02);
+}
+.richTabWrapper[data-accent="lime"]  { --accent-bg: #f7fae8; --accent-line: #b3d217; --accent-fg: #1b4332; }
+.richTabWrapper[data-accent="olive"] { --accent-bg: #f0f3e2; --accent-line: #8a9a3f; --accent-fg: #1b4332; }
+.richTabWrapper[data-accent="earth"] { --accent-bg: #f3efe4; --accent-line: #b48a3f; --accent-fg: #2c2c27; }
+.richTabWrapper[data-accent="sand"]  { --accent-bg: #f5f5f0; --accent-line: #2c2c27; --accent-fg: #2c2c27; }
+
+.richTabHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #ecece4;
+}
+.richTabIcon {
+  width: 64px; height: 64px;
+  border-radius: 16px;
+  background: var(--accent-bg);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent-fg);
+  flex-shrink: 0;
+}
+.richTabHeadText { display: flex; flex-direction: column; gap: 10px; padding-top: 2px; }
+.richTabTitle {
+  margin: 0;
+  font-family: var(--font-golos-text);
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 110%;
+  color: var(--text-black);
+  text-transform: uppercase;
+  letter-spacing: var(--ls--1);
+}
+.richTabIntro {
+  margin: 0;
+  font-family: var(--font-golos-text);
+  font-size: 18px;
+  line-height: 150%;
+  color: #4a4a44;
+  max-width: 760px;
+}
+
+.richTabList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 32px;
+}
+.richTabItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--accent-bg);
+  border-left: 3px solid var(--accent-line);
+  border-radius: 0 12px 12px 0;
+  font-family: var(--font-golos-text);
+  font-size: 17px;
+  line-height: 145%;
+  color: var(--text-black);
+}
+.richTabBullet {
+  font-size: 22px;
+  line-height: 1;
+  color: var(--accent-line);
+  font-weight: 700;
+  margin-top: 2px;
+}
+.richTabItemText { flex: 1; }
+.richTabItemText b, .richTabItemText strong { color: var(--accent-fg); font-weight: 600; }
+
+.richTabNoteBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: #fff8e1;
+  border-left: 3px solid #f7c576;
+  border-radius: 0 12px 12px 0;
+  padding: 18px 22px;
+}
+.richTabNoteLabel {
+  font-family: var(--font-golos-text);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #b86d00;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+.richTabNote {
+  margin: 0;
+  font-family: var(--font-golos-text);
+  font-size: 16px;
+  line-height: 150%;
+  color: #2c2c27;
+}
+
+/* ====== Specs table (Характеристика) ====== */
+.specsTableWrap { width: 100%; overflow-x: auto; }
+.specsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-golos-text);
+}
+.specsTable tr { border-top: 1px solid #ecece4; }
+.specsTable tr:first-child { border-top: 0; }
+.specsTable th {
+  text-align: left;
+  font-size: 16px;
+  font-weight: 500;
+  color: #6b6b66;
+  padding: 18px 24px 18px 0;
+  vertical-align: top;
+  width: 45%;
+}
+.specsTable td {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-black);
+  padding: 18px 0;
+  vertical-align: top;
+}
+.specsTable td b, .specsTable td strong { color: #1b4332; }
+
+@media screen and (max-width: 980px) {
+  .richTabWrapper { padding: 32px 24px; gap: 24px; }
+  .richTabTitle { font-size: 32px; }
+  .richTabHead { gap: 16px; }
+  .richTabIcon { width: 52px; height: 52px; }
+  .richTabList { grid-template-columns: 1fr; }
+  .specsTable th { width: 50%; padding-right: 16px; font-size: 14px; }
+  .specsTable td { font-size: 16px; }
+}
 @media screen and (max-width: 1275px) {
   .describeSectionWrapper {
     /* Зберігаємо первісну сумарну висоту 104px: 78 (top) + 26 (bottom) = 104 */

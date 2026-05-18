@@ -14,6 +14,29 @@ export type TabBlock = {
   note: string;
 };
 
+export type FeatureChip = {
+  icon: "lightning" | "eco" | "drop" | "shield" | "leaf";
+  title: string;
+  body: string;
+  variant: "green" | "dark" | "cream";
+};
+
+export type DescriptionTextBlock = {
+  title: string;
+  intro_html: string;
+  outro_html: string;
+};
+
+export type DescriptionBlock = {
+  hero_image: string;
+  title_line1: string;
+  title_line2: string;
+  title_subline: string;
+  chips: FeatureChip[];
+  problem: DescriptionTextBlock;
+  solution: DescriptionTextBlock;
+};
+
 export type PriceVariant = {
   volume: string;
   price: number;
@@ -50,6 +73,7 @@ export type Product = {
   sort_order: number;
   description_html: string;
   description_image: string;
+  description: DescriptionBlock;
   dosage: TabBlock;
   composition: TabBlock;
   compatibility: TabBlock;

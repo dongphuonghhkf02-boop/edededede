@@ -24,7 +24,7 @@ from .models import (
 )
 from .security import build_admin_dep
 from .upload import save_image
-from .utils import to_product_out, unique_slug, text_to_slug, sanitize_tab
+from .utils import to_product_out, unique_slug, text_to_slug, sanitize_tab, sanitize_description
 
 
 def _now_iso() -> str:
@@ -58,6 +58,8 @@ def build_admin_router(db: AsyncIOMotorDatabase) -> APIRouter:
         # sanitize tab blocks
         for tab_key in ("dosage", "composition", "compatibility", "specs"):
             data[tab_key] = sanitize_tab(data.get(tab_key))
+        # sanitize description block
+        data["description"] = sanitize_description(data.get("description"))
 
         # photos[] cleanup
         photos = [p for p in (data.get("photos") or []) if isinstance(p, str) and p.strip()]
@@ -89,6 +91,8 @@ def build_admin_router(db: AsyncIOMotorDatabase) -> APIRouter:
         for tab_key in ("dosage", "composition", "compatibility", "specs"):
             if tab_key in update:
                 update[tab_key] = sanitize_tab(update[tab_key])
+        if "description" in update:
+            update["description"] = sanitize_description(update["description"])
 
         if "photos" in update:
             cleaned = [p for p in (update["photos"] or []) if isinstance(p, str) and p.strip()]

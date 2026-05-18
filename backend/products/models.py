@@ -44,6 +44,36 @@ class PriceVariant(BaseModel):
     sku: str = ""
 
 
+# ====== Description (Опис) blocks — full Figma-style hero ======
+class FeatureChip(BaseModel):
+    """One of (up to 3) floating chips overlaid on the Опис hero image."""
+    model_config = ConfigDict(extra="ignore")
+    icon: Literal["lightning", "eco", "drop", "shield", "leaf"] = "lightning"
+    title: str = ""
+    body: str = ""
+    variant: Literal["green", "dark", "cream"] = "green"
+
+
+class DescriptionTextBlock(BaseModel):
+    """Sub-block for the "Проблема" / "Рішення" sections under the hero."""
+    model_config = ConfigDict(extra="ignore")
+    title: str = ""          # short heading label (e.g. "Проблема", "Рішення")
+    intro_html: str = ""     # main paragraph (HTML allowed: <b>..</b>)
+    outro_html: str = ""     # secondary paragraph or conclusion (HTML allowed)
+
+
+class DescriptionBlock(BaseModel):
+    """Full structure for the Опис tab — mirrors original Figma hero design."""
+    model_config = ConfigDict(extra="ignore")
+    hero_image: str = "/tree.webp"
+    title_line1: str = "Відновлення"
+    title_line2: str = "після стресу."
+    title_subline: str = "Стабільний врожай."
+    chips: List[FeatureChip] = []
+    problem: DescriptionTextBlock = DescriptionTextBlock(title="Проблема")
+    solution: DescriptionTextBlock = DescriptionTextBlock(title="Рішення")
+
+
 # ====== Product ======
 class ProductBase(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -71,8 +101,9 @@ class ProductBase(BaseModel):
     sort_order: int = 0
 
     # Product page rich content
-    description_html: str = ""          # rendered on "Опис" tab (raw HTML)
-    description_image: str = ""         # optional cover image for Опис tab
+    description_html: str = ""          # legacy: simple HTML fallback
+    description_image: str = ""         # legacy: optional cover image
+    description: DescriptionBlock = DescriptionBlock()   # NEW: full Figma-style Опис
     dosage: TabBlock = TabBlock(title="Дозування")
     composition: TabBlock = TabBlock(title="Склад")
     compatibility: TabBlock = TabBlock(title="Сумісність")
@@ -111,6 +142,7 @@ class ProductPatch(BaseModel):
     sort_order: Optional[int] = None
     description_html: Optional[str] = None
     description_image: Optional[str] = None
+    description: Optional[DescriptionBlock] = None
     dosage: Optional[TabBlock] = None
     composition: Optional[TabBlock] = None
     compatibility: Optional[TabBlock] = None

@@ -4,65 +4,95 @@ import EcoProtection1 from "./eco-protection1";
 import Drop1 from "./drop1";
 import styles from "./image2.module.css";
 
-export type Image2Type = {
-  className?: string;
+export type Image2Chip = {
+  icon?: "lightning" | "eco" | "drop" | "shield" | "leaf";
+  title?: string;
+  body?: string;
+  /** Color variant — green | dark | cream */
+  variant?: "green" | "dark" | "cream";
 };
 
-const Image2: React.FC<Image2Type> = ({ className = "" }) => {
+export type Image2Type = {
+  className?: string;
+  /** Hero image URL (defaults to /tree.webp) */
+  heroImage?: string;
+  /** Alt text for the hero image */
+  heroAlt?: string;
+  /** Optional override of the 3 floating chips; if omitted — uses original Figma defaults */
+  chips?: Image2Chip[];
+};
+
+const DEFAULT_CHIPS: Image2Chip[] = [
+  {
+    icon: "lightning",
+    title: "Швидке відновлення",
+    body: "Відновлення життєдіяльності рослин після стресу протягом короткого терміну",
+    variant: "green",
+  },
+  {
+    icon: "eco",
+    title: "Ідеальний pH-баланс води",
+    body: "Захищає дорогі пестициди від швидкого руйнування у жорсткій воді, покращуючи їх сумісність із рослиною.",
+    variant: "dark",
+  },
+  {
+    icon: "drop",
+    title: "Покращення поглинання",
+    body: "Впливає на рівномірне покриття листя та засвоєння активних речовин",
+    variant: "cream",
+  },
+];
+
+/* Map icon enum → component (size matches design 36px) */
+const renderIcon = (icon: Image2Chip["icon"]) => {
+  switch (icon) {
+    case "eco":
+      return <EcoProtection1 size={36} />;
+    case "drop":
+      return <Drop1 size={36} dropHeight="36px" dropWidth="36px" />;
+    case "lightning":
+    default:
+      return <Lightning1 size={36} />;
+  }
+};
+
+const variantToClass = (v: Image2Chip["variant"]): string => {
+  if (v === "dark") return styles.chip2;
+  if (v === "cream") return styles.chip3;
+  return styles.chip1;
+};
+
+const Image2: React.FC<Image2Type> = ({
+  className = "",
+  heroImage = "/tree.webp",
+  heroAlt = "Дерево — відновлення після стресу",
+  chips,
+}) => {
+  const list = (chips && chips.length > 0 ? chips : DEFAULT_CHIPS).slice(0, 3);
   return (
     <div className={[styles.image, className].join(" ")}>
       <div className={styles.imageParent}>
-        <img loading="lazy" decoding="async"
+        <img
+          loading="lazy"
+          decoding="async"
           className={styles.imageIcon}
           width={1376}
           height={601}
-          alt="Дерево — відновлення після стресу"
-          src="/tree.webp"
+          alt={heroAlt}
+          src={heroImage || "/tree.webp"}
         />
         <div className={styles.overlay} />
       </div>
 
-      {/* === 3 фичеблока (HTML+CSS, не PNG) — точные градиенты из Figma === */}
-
-      {/* 1) Швидке відновлення — олив-зелёный градиент, белый текст/иконка молнии */}
-      <div className={`${styles.chip} ${styles.chip1}`}>
-        <div className={styles.chipIcon}>
-          <Lightning1 size={36} />
-        </div>
-        <div className={styles.chipText}>
-          <div className={styles.chipTitle}>Швидке відновлення</div>
-          <div className={styles.chipBody}>
-            Відновлення життєдіяльності рослин після стресу протягом короткого терміну
+      {list.map((c, i) => (
+        <div key={i} className={`${styles.chip} ${variantToClass(c.variant)}`}>
+          <div className={styles.chipIcon}>{renderIcon(c.icon)}</div>
+          <div className={styles.chipText}>
+            <div className={styles.chipTitle}>{c.title}</div>
+            <div className={styles.chipBody}>{c.body}</div>
           </div>
         </div>
-      </div>
-
-      {/* 2) Ідеальний pH-баланс води — тёмно-серо-зелёный, белый текст/иконка drop+рука */}
-      <div className={`${styles.chip} ${styles.chip2}`}>
-        <div className={styles.chipIcon}>
-          <EcoProtection1 size={36} />
-        </div>
-        <div className={styles.chipText}>
-          <div className={styles.chipTitle}>Ідеальний pH-баланс води</div>
-          <div className={styles.chipBody}>
-            Захищає дорогі пестициди від швидкого руйнування у жорсткій воді,
-            покращуючи їх сумісність із рослиною.
-          </div>
-        </div>
-      </div>
-
-      {/* 3) Покращення поглинання — кремово-белый, чёрный текст/иконка капли */}
-      <div className={`${styles.chip} ${styles.chip3}`}>
-        <div className={styles.chipIcon}>
-          <Drop1 size={36} dropHeight="36px" dropWidth="36px" />
-        </div>
-        <div className={styles.chipText}>
-          <div className={styles.chipTitle}>Покращення поглинання</div>
-          <div className={styles.chipBody}>
-            Впливає на рівномірне покриття листя та засвоєння активних речовин
-          </div>
-        </div>
-      </div>
+      ))}
     </div>
   );
 };

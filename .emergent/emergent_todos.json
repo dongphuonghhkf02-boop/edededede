@@ -1,50 +1,34 @@
 [
   {
-    "content": "Backend: Create modular `products/` package",
-    "status": "completed"
+    "content": "Backend: Розширити модель Product (description hero + chips + problem/solution)",
+    "status": "in_progress"
   },
   {
-    "content": "Backend: Wire products router + seeding into server.py",
-    "status": "completed"
+    "content": "Backend: seed.py з правильними дефолтами для ОПИС",
+    "status": "pending"
   },
   {
-    "content": "Frontend: Create products-api.ts client + types",
-    "status": "completed"
+    "content": "Frontend: Image2 — приймає props (hero_image, chips[])",
+    "status": "pending"
   },
   {
-    "content": "Frontend: Refactor catalog.tsx to use API",
-    "status": "completed"
+    "content": "Frontend: TextBlock1 — приймає prop1 як ReactNode",
+    "status": "pending"
   },
   {
-    "content": "Frontend: Refactor desktop1.tsx (product page)",
-    "status": "completed"
+    "content": "Frontend: desktop1.tsx відновити оригінальний ОПИС вигляд (Image2 + h1/h2 + Problem/Solution)",
+    "status": "pending"
   },
   {
-    "content": "Frontend: Add /product/:slug + /products/:slug routes",
-    "status": "completed"
+    "content": "Frontend: Переоформити вкладки Дозування / Склад / Сумісність / Характеристика у візуальному стилі сайту (картки, таблиці)",
+    "status": "pending"
   },
   {
-    "content": "Frontend: Refactor header-search to use API",
-    "status": "completed"
+    "content": "Frontend: AdminProductEdit — додати блок редагування ALL полів ОПИС (hero/chips/problem/solution)",
+    "status": "pending"
   },
   {
-    "content": "Frontend: Create AdminProducts.tsx",
-    "status": "completed"
-  },
-  {
-    "content": "Frontend: Create AdminProductEdit.tsx",
-    "status": "completed"
-  },
-  {
-    "content": "Frontend: Create AdminProductCategories.tsx",
-    "status": "completed"
-  },
-  {
-    "content": "Frontend: Wire admin routes in App.tsx + sidebar nav",
-    "status": "completed"
-  },
-  {
-    "content": "Final: End-to-end testing — backend 100%, frontend 95% (2 LOW-priority cosmetic test-only issues, not user-facing bugs)",
-    "status": "completed"
+    "content": "Final: Скріншоти + curl test",
+    "status": "pending"
   }
 ]

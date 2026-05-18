@@ -17,11 +17,16 @@ Architecture: each concern is split into its own submodule:
   seed.py           — default seed data
 """
 from .router import build_products_router, UPLOAD_DIR
-from .seed import seed_products_if_empty, seed_product_categories_if_empty
+from .seed import (
+    seed_products_if_empty,
+    seed_product_categories_if_empty,
+    backfill_product_descriptions,
+)
 
 __all__ = [
     "build_products_router",
     "seed_products_if_empty",
     "seed_product_categories_if_empty",
+    "backfill_product_descriptions",
     "UPLOAD_DIR",
 ]

@@ -102,6 +102,64 @@ def _build_default_tabs():
     }
 
 
+def _build_default_description(product_name: str, short_desc: str) -> dict:
+    """Return the Figma-style Опис block used as default for every seeded product."""
+    return {
+        "hero_image": "/tree.webp",
+        "title_line1": "Відновлення",
+        "title_line2": "після стресу.",
+        "title_subline": "Стабільний врожай.",
+        "chips": [
+            {
+                "icon": "lightning",
+                "title": "Швидке відновлення",
+                "body": "Відновлення життєдіяльності рослин після стресу протягом короткого терміну",
+                "variant": "green",
+            },
+            {
+                "icon": "eco",
+                "title": "Ідеальний pH-баланс води",
+                "body": "Захищає дорогі пестициди від швидкого руйнування у жорсткій воді, покращуючи їх сумісність із рослиною.",
+                "variant": "dark",
+            },
+            {
+                "icon": "drop",
+                "title": "Покращення поглинання",
+                "body": "Впливає на рівномірне покриття листя та засвоєння активних речовин",
+                "variant": "cream",
+            },
+        ],
+        "problem": {
+            "title": "Проблема",
+            "intro_html": (
+                "Протягом вегетаційного періоду рослини піддаються впливу "
+                "<b>великої кількості стресових факторів</b>: пестицидні навантаження, "
+                "несприятливі погодні умови (температура, вологість), механічні пошкодження, "
+                "градобій, погіршення живлення та ін."
+            ),
+            "outro_html": (
+                "Це призводить до погіршення росту рослин, зниженню їх продуктивності, "
+                "а іноді й до їх загибелі."
+            ),
+        },
+        "solution": {
+            "title": "Рішення",
+            "intro_html": (
+                f"<b>{product_name}</b> — препарат на основі живих культур бактерій, "
+                "амінокислот та мікроелементів. Відновлює біохімічні процеси у рослині після "
+                "впливу стресових факторів. Активізує поділ клітин кореневої системи, "
+                "завдяки чому рослина через молоді кореневі волоски інтенсивно поглинає "
+                "елементи живлення та вологу."
+            ),
+            "outro_html": (
+                "Рослина <span style=\"color:#b3d217\">швидше виходить зі стресу</span> "
+                "і спрямовує енергію на ріст та формування врожаю. "
+                "<span style=\"color:#b3d217\">Врожай стабільніший</span> навіть у складні сезони."
+            ),
+        },
+    }
+
+
 DEFAULT_PRODUCTS = [
     dict(slug="venator",   name="Венатор",   short_desc="біологічний родентицид",                                  category="rodenticide",  photo=PHOTOS[0], price=420, default_volume="5 Л", packing="1, 5, 10 л", norm="1.5–2 л/га",   in_stock=True,  rating=4.9, reviews=100, is_hit=True),
     dict(slug="flores",    name="Флорес",    short_desc="комплексний інокулянт для бобових культур",               category="inoculant",    photo=PHOTOS[1], price=380, default_volume="5 Л", packing="1, 5, 10 л", norm="2–3 л/т",     in_stock=True,  rating=4.8, reviews=84,  is_hit=True),
@@ -180,6 +238,7 @@ async def seed_products_if_empty(db: AsyncIOMotorDatabase) -> None:
             "sort_order": idx,
             "description_html": tabs["description_html"],
             "description_image": "",
+            "description": _build_default_description(p["name"], p["short_desc"]),
             "dosage": tabs["dosage"],
             "composition": tabs["composition"],
             "compatibility": tabs["compatibility"],
@@ -193,3 +252,32 @@ async def seed_products_if_empty(db: AsyncIOMotorDatabase) -> None:
     if docs:
         await db.products.insert_many(docs)
         logger.info(f"[seed] products: inserted {len(docs)} default products")
+
+
+async def backfill_product_descriptions(db: AsyncIOMotorDatabase) -> None:
+    """
+    One-time, idempotent migration: every existing product that is missing
+    the new `description` block (or has an empty problem.intro_html) gets
+    a sensible default populated using its own name + short_desc.
+    Safe to call on every startup — only writes documents that need it.
+    """
+    cursor = db.products.find({}, {"_id": 0})
+    updated = 0
+    async for doc in cursor:
+        desc = doc.get("description")
+        needs = (
+            not isinstance(desc, dict)
+            or not desc.get("problem", {}).get("intro_html")
+            or not desc.get("solution", {}).get("intro_html")
+            or not desc.get("chips")
+        )
+        if not needs:
+            continue
+        new_desc = _build_default_description(doc.get("name", ""), doc.get("short_desc", ""))
+        await db.products.update_one(
+            {"id": doc["id"]},
+            {"$set": {"description": new_desc, "updated_at": datetime.now(timezone.utc).isoformat()}},
+        )
+        updated += 1
+    if updated:
+        logger.info(f"[migrate] products: backfilled description on {updated} products")
