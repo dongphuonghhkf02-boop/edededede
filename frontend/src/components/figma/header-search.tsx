@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Search1 from "./search1";
-import { ALL_PRODUCTS, searchProducts, type Product } from "../../data/products";
+import { listProducts, searchProductsLive, pickProductCover, type Product } from "../../lib/products-api";
 import styles from "./header-search.module.css";
 
 /* =================================================================
@@ -52,10 +52,29 @@ const HeaderSearch: React.FC<Props> = ({ size = 20 }) => {
     }
   }, [open]);
 
-  const suggestions: Product[] = useMemo(
-    () => searchProducts(query, { minChars: 2, limit: 6 }),
-    [query]
-  );
+  const [suggestions, setSuggestions] = useState<Product[]>([]);
+  const [featured, setFeatured] = useState<Product[]>([]);
+
+  /* Load featured top-rated products once when the panel opens */
+  useEffect(() => {
+    if (!open || featured.length > 0) return;
+    listProducts({ sort: "rec", limit: 4 })
+      .then((r) => setFeatured(r.items))
+      .catch(() => { /* silent */ });
+  }, [open, featured.length]);
+
+  /* Live suggestions when query changes (debounced via search endpoint) */
+  useEffect(() => {
+    let cancelled = false;
+    const q = query.trim();
+    if (q.length < 2) { setSuggestions([]); return; }
+    const t = window.setTimeout(() => {
+      searchProductsLive(q, 6)
+        .then((r) => { if (!cancelled) setSuggestions(r.items); })
+        .catch(() => { if (!cancelled) setSuggestions([]); });
+    }, 200);
+    return () => { cancelled = true; window.clearTimeout(t); };
+  }, [query]);
 
   const goToCatalogWithQuery = useCallback(
     (q?: string) => {
@@ -70,8 +89,7 @@ const HeaderSearch: React.FC<Props> = ({ size = 20 }) => {
 
   const handlePick = useCallback(
     (p: Product) => {
-      // Future: navigate to /product/:id. For now go to the product page.
-      navigate(`/product?id=${encodeURIComponent(p.id)}`);
+      navigate(`/product/${encodeURIComponent(p.slug)}`);
       setOpen(false);
       setQuery("");
     },
@@ -96,15 +114,6 @@ const HeaderSearch: React.FC<Props> = ({ size = 20 }) => {
       </>
     );
   };
-
-  /* Top-rated chips when the field is open but empty (UX boost) */
-  const featured = useMemo(
-    () =>
-      [...ALL_PRODUCTS]
-        .sort((a, b) => (b.isHit ? 1 : 0) - (a.isHit ? 1 : 0) || b.rating - a.rating)
-        .slice(0, 4),
-    []
-  );
 
   return (
     <div ref={wrapRef} className={styles.wrap} data-open={open ? "true" : "false"}>
@@ -179,10 +188,10 @@ const HeaderSearch: React.FC<Props> = ({ size = 20 }) => {
                       onClick={() => handlePick(p)}
                       data-testid={`header-search-suggest-${p.id}`}
                     >
-                      <img loading="lazy" decoding="async" src={p.photo} alt="" width={48} height={48} />
+                      <img loading="lazy" decoding="async" src={pickProductCover(p)} alt="" width={48} height={48} />
                       <div className={styles.text}>
                         <div className={styles.name}>{highlight(p.name, query.trim())}</div>
-                        <div className={styles.desc}>{highlight(p.desc, query.trim())}</div>
+                        <div className={styles.desc}>{highlight(p.short_desc, query.trim())}</div>
                       </div>
                       <div className={styles.price}>від {p.price} ₴/л</div>
                     </button>
@@ -209,7 +218,7 @@ const HeaderSearch: React.FC<Props> = ({ size = 20 }) => {
                     className={styles.featuredTile}
                     onClick={() => handlePick(p)}
                   >
-                    <img loading="lazy" decoding="async" src={p.photo} alt={p.name} width={56} height={56} />
+                    <img loading="lazy" decoding="async" src={pickProductCover(p)} alt={p.name} width={56} height={56} />
                     <div className={styles.featuredText}>
                       <div className={styles.name}>{p.name}</div>
                       <div className={styles.featuredPrice}>від {p.price} ₴/л</div>

@@ -246,6 +246,26 @@
   color: var(--text-black);
   max-width: 760px;
 }
+.richTabBody {
+  font-family: var(--font-golos-text);
+  font-size: var(--fs-18);
+  line-height: 150%;
+  color: var(--text-black);
+  max-width: 820px;
+}
+.richTabBody p { margin: 0 0 14px; }
+.richTabBody p:last-child { margin-bottom: 0; }
+.richTabBody b, .richTabBody strong { color: #2c2c27; }
+.tabImage {
+  display: block;
+  width: 100%;
+  max-width: 820px;
+  height: auto;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  object-fit: cover;
+}
+.tabList li b { color: #1b4332; }
 @media screen and (max-width: 1275px) {
   .describeSectionWrapper {
     /* Зберігаємо первісну сумарну висоту 104px: 78 (top) + 26 (bottom) = 104 */

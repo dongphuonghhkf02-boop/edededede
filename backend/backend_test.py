@@ -1,13 +1,13 @@
 """
-Backend API Testing for TAMIS АГРО Blog Feature
-Tests all blog CRUD endpoints, admin auth, contact messages, and image upload.
+Backend API Testing for TAMIS АГРО - Blog + Products Features
+Tests all blog CRUD endpoints, products catalog APIs, admin auth, and image uploads.
 """
 import requests
 import sys
 import io
 from datetime import datetime
 
-BASE_URL = "https://repo-deploy-55.preview.emergentagent.com/api"
+BASE_URL = "https://repo-deploy-56.preview.emergentagent.com/api"
 
 class BlogAPITester:
     def __init__(self):
@@ -543,7 +543,7 @@ class BlogAPITester:
                 self.log(f"ERROR: URL should start with /api/uploads/blog/, got: {url}", "error")
                 return False
             # Verify file is publicly fetchable
-            full_url = f"https://repo-deploy-55.preview.emergentagent.com{url}"
+            full_url = f"https://repo-deploy-56.preview.emergentagent.com{url}"
             try:
                 fetch_response = requests.get(full_url, timeout=10)
                 if fetch_response.status_code == 200:
@@ -709,9 +709,665 @@ class BlogAPITester:
 
         return 0 if self.tests_passed == self.tests_run else 1
 
+class ProductsAPITester:
+    """Test suite for Products module APIs"""
+    def __init__(self):
+        self.tests_run = 0
+        self.tests_passed = 0
+        self.admin_token = None
+        self.test_product_id = None
+        self.test_product_slug = None
+        self.test_category_id = None
+
+    def log(self, msg: str, level: str = "info"):
+        prefix = {
+            "info": "ℹ️ ",
+            "success": "✅",
+            "error": "❌",
+            "test": "🔍"
+        }.get(level, "")
+        print(f"{prefix} {msg}")
+
+    def run_test(self, name: str, method: str, endpoint: str, expected_status: int, 
+                 data=None, headers=None, token=None, files=None, params=None):
+        """Run a single API test"""
+        url = f"{BASE_URL}/{endpoint}"
+        req_headers = {}
+        if headers:
+            req_headers.update(headers)
+        if token:
+            req_headers['Authorization'] = f'Bearer {token}'
+        if not files and data is not None:
+            req_headers['Content-Type'] = 'application/json'
+
+        self.tests_run += 1
+        self.log(f"Testing {name}...", "test")
+        
+        try:
+            if method == 'GET':
+                response = requests.get(url, headers=req_headers, params=params, timeout=15)
+            elif method == 'POST':
+                if files:
+                    response = requests.post(url, files=files, headers=req_headers, timeout=15)
+                else:
+                    response = requests.post(url, json=data, headers=req_headers, timeout=15)
+            elif method == 'PATCH':
+                response = requests.patch(url, json=data, headers=req_headers, timeout=15)
+            elif method == 'DELETE':
+                response = requests.delete(url, headers=req_headers, timeout=15)
+            else:
+                self.log(f"Unsupported method {method}", "error")
+                return False, {}
+
+            success = response.status_code == expected_status
+            if success:
+                self.tests_passed += 1
+                self.log(f"Passed - Status: {response.status_code}", "success")
+            else:
+                self.log(f"Failed - Expected {expected_status}, got {response.status_code}", "error")
+                try:
+                    self.log(f"Response: {response.json()}", "error")
+                except:
+                    self.log(f"Response text: {response.text[:300]}", "error")
+
+            try:
+                return success, response.json()
+            except:
+                return success, {}
+
+        except Exception as e:
+            self.log(f"Failed - Error: {str(e)}", "error")
+            return False, {}
+
+    # ===== AUTH =====
+    def test_admin_login(self):
+        """Test POST /api/auth/login with admin credentials"""
+        success, response = self.run_test(
+            "Admin login (admin@tamis.ua / admin1234)",
+            "POST",
+            "auth/login",
+            200,
+            data={"email": "admin@tamis.ua", "password": "admin1234"}
+        )
+        if success and 'token' in response:
+            self.admin_token = response['token']
+            user = response.get('user', {})
+            self.log(f"Admin token obtained - role: {user.get('role')}", "info")
+            if user.get('role') != 'admin':
+                self.log("ERROR: User does not have admin role!", "error")
+                return False
+        return success
+
+    # ===== PUBLIC PRODUCTS ENDPOINTS =====
+    def test_products_list(self):
+        """Test GET /api/products (public list)"""
+        success, response = self.run_test(
+            "GET /api/products (public list)",
+            "GET",
+            "products",
+            200,
+            params={"limit": 20}
+        )
+        if success:
+            items = response.get('items', [])
+            total = response.get('total', 0)
+            self.log(f"Found {len(items)} products (total: {total})", "info")
+            if items:
+                # Store first product for detail test
+                self.test_product_slug = items[0].get('slug')
+                # Verify required fields
+                p = items[0]
+                required = ['id', 'slug', 'name', 'category', 'price', 'in_stock']
+                for field in required:
+                    if field not in p:
+                        self.log(f"ERROR: Missing field '{field}' in product", "error")
+                        return False
+        return success
+
+    def test_products_filter_category(self):
+        """Test GET /api/products?category=biopesticide"""
+        success, response = self.run_test(
+            "GET /api/products?category=biopesticide",
+            "GET",
+            "products",
+            200,
+            params={"category": "biopesticide", "limit": 20}
+        )
+        if success:
+            items = response.get('items', [])
+            self.log(f"Found {len(items)} products in category 'biopesticide'", "info")
+        return success
+
+    def test_products_filter_stock(self):
+        """Test GET /api/products?stock=in"""
+        success, response = self.run_test(
+            "GET /api/products?stock=in",
+            "GET",
+            "products",
+            200,
+            params={"stock": "in", "limit": 20}
+        )
+        if success:
+            items = response.get('items', [])
+            self.log(f"Found {len(items)} in-stock products", "info")
+            # Verify all are in stock
+            for p in items:
+                if not p.get('in_stock'):
+                    self.log(f"ERROR: Product {p.get('slug')} should be in stock", "error")
+                    return False
+        return success
+
+    def test_products_search(self):
+        """Test GET /api/products?q=text"""
+        success, response = self.run_test(
+            "GET /api/products?q=bio",
+            "GET",
+            "products",
+            200,
+            params={"q": "bio", "limit": 20}
+        )
+        if success:
+            items = response.get('items', [])
+            self.log(f"Search 'bio' found {len(items)} products", "info")
+        return success
+
+    def test_products_sort_asc(self):
+        """Test GET /api/products?sort=asc"""
+        success, response = self.run_test(
+            "GET /api/products?sort=asc",
+            "GET",
+            "products",
+            200,
+            params={"sort": "asc", "limit": 5}
+        )
+        if success:
+            items = response.get('items', [])
+            if len(items) >= 2:
+                # Verify ascending price order
+                prices = [p.get('price', 0) for p in items]
+                if prices != sorted(prices):
+                    self.log(f"WARNING: Prices not in ascending order: {prices}", "error")
+        return success
+
+    def test_products_sort_desc(self):
+        """Test GET /api/products?sort=desc"""
+        success, response = self.run_test(
+            "GET /api/products?sort=desc",
+            "GET",
+            "products",
+            200,
+            params={"sort": "desc", "limit": 5}
+        )
+        return success
+
+    def test_products_sort_new(self):
+        """Test GET /api/products?sort=new"""
+        success, response = self.run_test(
+            "GET /api/products?sort=new",
+            "GET",
+            "products",
+            200,
+            params={"sort": "new", "limit": 5}
+        )
+        return success
+
+    def test_products_sort_az(self):
+        """Test GET /api/products?sort=az"""
+        success, response = self.run_test(
+            "GET /api/products?sort=az",
+            "GET",
+            "products",
+            200,
+            params={"sort": "az", "limit": 5}
+        )
+        return success
+
+    def test_products_categories(self):
+        """Test GET /api/products/categories"""
+        success, response = self.run_test(
+            "GET /api/products/categories",
+            "GET",
+            "products/categories",
+            200
+        )
+        if success:
+            items = response.get('items', [])
+            self.log(f"Found {len(items)} active categories", "info")
+            for cat in items[:3]:
+                self.log(f"  - {cat.get('label')} ({cat.get('slug')}): {cat.get('count', 0)} products", "info")
+        return success
+
+    def test_products_search_autocomplete(self):
+        """Test GET /api/products/search?q=ven"""
+        success, response = self.run_test(
+            "GET /api/products/search?q=ven",
+            "GET",
+            "products/search",
+            200,
+            params={"q": "ven", "limit": 6}
+        )
+        if success:
+            items = response.get('items', [])
+            self.log(f"Autocomplete 'ven' found {len(items)} products", "info")
+        return success
+
+    def test_products_detail(self):
+        """Test GET /api/products/{slug}"""
+        if not self.test_product_slug:
+            self.log("Skipping - no test product slug", "error")
+            return False
+        
+        success, response = self.run_test(
+            f"GET /api/products/{self.test_product_slug}",
+            "GET",
+            f"products/{self.test_product_slug}",
+            200
+        )
+        if success:
+            # Verify full product structure
+            required_tabs = ['dosage', 'composition', 'compatibility', 'specs']
+            for tab in required_tabs:
+                if tab not in response:
+                    self.log(f"ERROR: Missing tab '{tab}' in product detail", "error")
+                    return False
+            self.log(f"Product detail includes all tabs: {', '.join(required_tabs)}", "info")
+        return success
+
+    def test_products_detail_404(self):
+        """Test GET /api/products/nonexistent-slug (should 404)"""
+        success, _ = self.run_test(
+            "GET /api/products/nonexistent-slug (404)",
+            "GET",
+            "products/nonexistent-product-12345",
+            404
+        )
+        return success
+
+    def test_products_related(self):
+        """Test GET /api/products/{slug}/related"""
+        if not self.test_product_slug:
+            self.log("Skipping - no test product slug", "error")
+            return False
+        
+        success, response = self.run_test(
+            f"GET /api/products/{self.test_product_slug}/related",
+            "GET",
+            f"products/{self.test_product_slug}/related",
+            200,
+            params={"limit": 4}
+        )
+        if success:
+            items = response.get('items', [])
+            self.log(f"Found {len(items)} related products", "info")
+        return success
+
+    # ===== ADMIN PRODUCTS ENDPOINTS =====
+    def test_admin_products_list_no_auth(self):
+        """Test GET /api/admin/products without auth (should 401)"""
+        success, _ = self.run_test(
+            "GET /api/admin/products (no auth → 401)",
+            "GET",
+            "admin/products",
+            401
+        )
+        return success
+
+    def test_admin_products_list(self):
+        """Test GET /api/admin/products (with admin auth)"""
+        if not self.admin_token:
+            self.log("Skipping - no admin token", "error")
+            return False
+        
+        success, response = self.run_test(
+            "GET /api/admin/products (admin)",
+            "GET",
+            "admin/products",
+            200,
+            token=self.admin_token
+        )
+        if success:
+            items = response.get('items', [])
+            total = response.get('total', 0)
+            self.log(f"Admin sees {len(items)} products (total: {total})", "info")
+            # Count drafts
+            drafts = [p for p in items if p.get('status') == 'draft']
+            self.log(f"  - {len(drafts)} drafts, {len(items) - len(drafts)} published", "info")
+        return success
+
+    def test_admin_products_create(self):
+        """Test POST /api/admin/products (create product)"""
+        if not self.admin_token:
+            self.log("Skipping - no admin token", "error")
+            return False
+        
+        timestamp = datetime.now().strftime('%H%M%S')
+        success, response = self.run_test(
+            "POST /api/admin/products (create)",
+            "POST",
+            "admin/products",
+            200,
+            data={
+                "name": f"Test Product {timestamp}",
+                "short_desc": "Test product for automated testing",
+                "category": "inoculant",
+                "price": 299.99,
+                "packing": "1, 5, 10 л",
+                "norm": "1.5–2 л/га",
+                "default_volume": "5 Л",
+                "in_stock": True,
+                "status": "draft"
+            },
+            token=self.admin_token
+        )
+        if success:
+            self.test_product_id = response.get('id')
+            self.test_product_slug = response.get('slug')
+            self.log(f"Created product: id={self.test_product_id}, slug={self.test_product_slug}", "info")
+        return success
+
+    def test_admin_products_patch(self):
+        """Test PATCH /api/admin/products/{id} (update product)"""
+        if not self.admin_token or not self.test_product_id:
+            self.log("Skipping - no admin token or test product", "error")
+            return False
+        
+        success, response = self.run_test(
+            "PATCH /api/admin/products/{id} (update price)",
+            "PATCH",
+            f"admin/products/{self.test_product_id}",
+            200,
+            data={"price": 349.99, "is_hit": True},
+            token=self.admin_token
+        )
+        if success:
+            new_price = response.get('price')
+            is_hit = response.get('is_hit')
+            self.log(f"Price updated to: {new_price}, is_hit: {is_hit}", "info")
+        return success
+
+    def test_admin_products_patch_tabs(self):
+        """Test PATCH /api/admin/products/{id} (update nested tabs)"""
+        if not self.admin_token or not self.test_product_id:
+            self.log("Skipping - no admin token or test product", "error")
+            return False
+        
+        success, response = self.run_test(
+            "PATCH /api/admin/products/{id} (update dosage tab)",
+            "PATCH",
+            f"admin/products/{self.test_product_id}",
+            200,
+            data={
+                "dosage": {
+                    "title": "Дозування",
+                    "intro": "Рекомендовані норми застосування",
+                    "items": [
+                        {"text": "Соя: 1.5–2 л/га"},
+                        {"text": "Пшениця: 1–1.5 л/га"}
+                    ],
+                    "note": "Застосовувати перед посівом"
+                }
+            },
+            token=self.admin_token
+        )
+        if success:
+            dosage = response.get('dosage', {})
+            items_count = len(dosage.get('items', []))
+            self.log(f"Dosage tab updated with {items_count} items", "info")
+        return success
+
+    def test_admin_products_upload_image(self):
+        """Test POST /api/admin/products/upload-image (multipart file upload)"""
+        if not self.admin_token:
+            self.log("Skipping - no admin token", "error")
+            return False
+        
+        # Create a small PNG image (1x1 red pixel)
+        png_data = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc\xf8\xcf\xc0\x00\x00\x00\x03\x00\x01\x00\x18\xdd\x8d\xb4\x00\x00\x00\x00IEND\xaeB`\x82'
+        
+        files = {'file': ('test-product.png', io.BytesIO(png_data), 'image/png')}
+        
+        success, response = self.run_test(
+            "POST /api/admin/products/upload-image (PNG)",
+            "POST",
+            "admin/products/upload-image",
+            200,
+            files=files,
+            token=self.admin_token
+        )
+        if success:
+            url = response.get('url', '')
+            filename = response.get('filename', '')
+            self.log(f"Uploaded: {filename}, URL: {url}", "info")
+            # Verify URL starts with /api/uploads/products/
+            if not url.startswith('/api/uploads/products/'):
+                self.log(f"ERROR: URL should start with /api/uploads/products/, got: {url}", "error")
+                return False
+        return success
+
+    def test_admin_products_delete(self):
+        """Test DELETE /api/admin/products/{id}"""
+        if not self.admin_token or not self.test_product_id:
+            self.log("Skipping - no admin token or test product", "error")
+            return False
+        
+        success, response = self.run_test(
+            f"DELETE /api/admin/products/{self.test_product_id}",
+            "DELETE",
+            f"admin/products/{self.test_product_id}",
+            200,
+            token=self.admin_token
+        )
+        if success:
+            deleted = response.get('deleted', False)
+            self.log(f"Deleted: {deleted}", "info")
+        return success
+
+    # ===== ADMIN CATEGORIES ENDPOINTS =====
+    def test_admin_categories_list(self):
+        """Test GET /api/admin/product-categories"""
+        if not self.admin_token:
+            self.log("Skipping - no admin token", "error")
+            return False
+        
+        success, response = self.run_test(
+            "GET /api/admin/product-categories",
+            "GET",
+            "admin/product-categories",
+            200,
+            token=self.admin_token
+        )
+        if success:
+            items = response.get('items', [])
+            self.log(f"Found {len(items)} categories", "info")
+        return success
+
+    def test_admin_categories_create(self):
+        """Test POST /api/admin/product-categories"""
+        if not self.admin_token:
+            self.log("Skipping - no admin token", "error")
+            return False
+        
+        timestamp = datetime.now().strftime('%H%M%S')
+        success, response = self.run_test(
+            "POST /api/admin/product-categories (create)",
+            "POST",
+            "admin/product-categories",
+            200,
+            data={
+                "slug": f"test-cat-{timestamp}",
+                "label": f"Test Category {timestamp}",
+                "sort_order": 999,
+                "active": True
+            },
+            token=self.admin_token
+        )
+        if success:
+            self.test_category_id = response.get('id')
+            self.log(f"Created category: id={self.test_category_id}", "info")
+        return success
+
+    def test_admin_categories_patch(self):
+        """Test PATCH /api/admin/product-categories/{id}"""
+        if not self.admin_token or not self.test_category_id:
+            self.log("Skipping - no admin token or test category", "error")
+            return False
+        
+        success, response = self.run_test(
+            "PATCH /api/admin/product-categories/{id}",
+            "PATCH",
+            f"admin/product-categories/{self.test_category_id}",
+            200,
+            data={"label": "Updated Test Category", "active": False},
+            token=self.admin_token
+        )
+        if success:
+            new_label = response.get('label')
+            active = response.get('active')
+            self.log(f"Category updated: label={new_label}, active={active}", "info")
+        return success
+
+    def test_admin_categories_delete(self):
+        """Test DELETE /api/admin/product-categories/{id}"""
+        if not self.admin_token or not self.test_category_id:
+            self.log("Skipping - no admin token or test category", "error")
+            return False
+        
+        success, response = self.run_test(
+            f"DELETE /api/admin/product-categories/{self.test_category_id}",
+            "DELETE",
+            f"admin/product-categories/{self.test_category_id}",
+            200,
+            token=self.admin_token
+        )
+        if success:
+            deleted = response.get('deleted', False)
+            self.log(f"Deleted: {deleted}", "info")
+        return success
+
+    def test_admin_categories_reorder(self):
+        """Test POST /api/admin/product-categories/reorder"""
+        if not self.admin_token:
+            self.log("Skipping - no admin token", "error")
+            return False
+        
+        # First get current categories
+        _, list_response = self.run_test(
+            "GET /api/admin/product-categories (for reorder)",
+            "GET",
+            "admin/product-categories",
+            200,
+            token=self.admin_token
+        )
+        items = list_response.get('items', [])
+        if len(items) < 2:
+            self.log("Not enough categories to test reorder", "info")
+            return True
+        
+        # Reverse the order
+        ids = [cat['id'] for cat in items]
+        reversed_ids = list(reversed(ids))
+        
+        success, response = self.run_test(
+            "POST /api/admin/product-categories/reorder",
+            "POST",
+            "admin/product-categories/reorder",
+            200,
+            data={"ids": reversed_ids},
+            token=self.admin_token
+        )
+        if success:
+            count = response.get('count', 0)
+            self.log(f"Reordered {count} categories", "info")
+        return success
+
+    def run_all_tests(self):
+        """Run all products API tests"""
+        print("\n" + "="*70)
+        print("🚀 TAMIS АГРО Backend API Testing - Products Module")
+        print("="*70 + "\n")
+
+        # Auth
+        print("\n🔐 ADMIN AUTH")
+        print("-" * 70)
+        if not self.test_admin_login():
+            print("\n❌ Admin login failed - cannot proceed with admin tests")
+            return 1
+
+        # Public products endpoints
+        print("\n🛒 PUBLIC PRODUCTS ENDPOINTS")
+        print("-" * 70)
+        self.test_products_list()
+        self.test_products_filter_category()
+        self.test_products_filter_stock()
+        self.test_products_search()
+        self.test_products_sort_asc()
+        self.test_products_sort_desc()
+        self.test_products_sort_new()
+        self.test_products_sort_az()
+        self.test_products_categories()
+        self.test_products_search_autocomplete()
+        self.test_products_detail()
+        self.test_products_detail_404()
+        self.test_products_related()
+
+        # Admin products endpoints
+        print("\n🔒 ADMIN PRODUCTS ENDPOINTS")
+        print("-" * 70)
+        self.test_admin_products_list_no_auth()
+        self.test_admin_products_list()
+        self.test_admin_products_create()
+        self.test_admin_products_patch()
+        self.test_admin_products_patch_tabs()
+        self.test_admin_products_upload_image()
+        self.test_admin_products_delete()
+
+        # Admin categories endpoints
+        print("\n📁 ADMIN CATEGORIES ENDPOINTS")
+        print("-" * 70)
+        self.test_admin_categories_list()
+        self.test_admin_categories_create()
+        self.test_admin_categories_patch()
+        self.test_admin_categories_reorder()
+        self.test_admin_categories_delete()
+
+        # Summary
+        print("\n" + "="*70)
+        print(f"📊 RESULTS: {self.tests_passed}/{self.tests_run} tests passed")
+        success_rate = (self.tests_passed / self.tests_run * 100) if self.tests_run > 0 else 0
+        print(f"📈 Success Rate: {success_rate:.1f}%")
+        print("="*70 + "\n")
+
+        return 0 if self.tests_passed == self.tests_run else 1
+
+
 def main():
-    tester = BlogAPITester()
-    return tester.run_all_tests()
+    print("\n" + "="*80)
+    print("🧪 TAMIS АГРО - COMPREHENSIVE BACKEND API TESTING")
+    print("="*80)
+    
+    # Test Products Module
+    products_tester = ProductsAPITester()
+    products_result = products_tester.run_all_tests()
+    
+    # Test Blog Module
+    blog_tester = BlogAPITester()
+    blog_result = blog_tester.run_all_tests()
+    
+    # Overall summary
+    total_tests = products_tester.tests_run + blog_tester.tests_run
+    total_passed = products_tester.tests_passed + blog_tester.tests_passed
+    
+    print("\n" + "="*80)
+    print("🎯 OVERALL SUMMARY")
+    print("="*80)
+    print(f"Products Module: {products_tester.tests_passed}/{products_tester.tests_run} passed")
+    print(f"Blog Module: {blog_tester.tests_passed}/{blog_tester.tests_run} passed")
+    print(f"TOTAL: {total_passed}/{total_tests} tests passed")
+    success_rate = (total_passed / total_tests * 100) if total_tests > 0 else 0
+    print(f"Overall Success Rate: {success_rate:.1f}%")
+    print("="*80 + "\n")
+    
+    return 0 if total_passed == total_tests else 1
 
 if __name__ == "__main__":
     sys.exit(main())

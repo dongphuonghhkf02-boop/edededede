@@ -85,6 +85,12 @@ from cultures_routes import build_cultures_router, seed_cultures_if_empty  # noq
 from trusted_partners_routes import build_trusted_partners_router, seed_partners_if_empty  # noqa: E402
 from contact_messages_routes import build_contact_messages_router  # noqa: E402
 from blog_routes import build_blog_router, seed_blog_if_empty, UPLOAD_DIR as BLOG_UPLOAD_DIR  # noqa: E402
+from products import (  # noqa: E402
+    build_products_router,
+    seed_products_if_empty,
+    seed_product_categories_if_empty,
+    UPLOAD_DIR as PRODUCTS_UPLOAD_DIR,
+)
 from fastapi.staticfiles import StaticFiles  # noqa: E402
 app.include_router(build_cart_router(db), prefix="/api")
 app.include_router(build_profile_router(db), prefix="/api")
@@ -101,11 +107,16 @@ app.include_router(build_cultures_router(db), prefix="/api")
 app.include_router(build_trusted_partners_router(db), prefix="/api")
 app.include_router(build_contact_messages_router(db), prefix="/api")
 app.include_router(build_blog_router(db), prefix="/api")
+app.include_router(build_products_router(db), prefix="/api")
 
 # Static files: blog uploaded images (served at /api/uploads/blog/<filename>)
 # Mounted on /api/* so it goes through the same ingress route as other API endpoints.
 BLOG_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/api/uploads/blog", StaticFiles(directory=str(BLOG_UPLOAD_DIR)), name="blog-uploads")
+
+# Static files: product uploaded images (served at /api/uploads/products/<filename>)
+PRODUCTS_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/api/uploads/products", StaticFiles(directory=str(PRODUCTS_UPLOAD_DIR)), name="product-uploads")
 
 app.add_middleware(
     CORSMiddleware,
@@ -313,6 +324,18 @@ async def seed_test_account():
         await seed_blog_if_empty(db)
     except Exception as e:
         logger.warning(f"[seed] blog skipped: {e}")
+
+    # Seed Product Categories (filter taxonomy) — must run BEFORE products
+    try:
+        await seed_product_categories_if_empty(db)
+    except Exception as e:
+        logger.warning(f"[seed] product_categories skipped: {e}")
+
+    # Seed Products with default catalog (20 items)
+    try:
+        await seed_products_if_empty(db)
+    except Exception as e:
+        logger.warning(f"[seed] products skipped: {e}")
 
 
 @app.get("/api/auth/test-credentials")

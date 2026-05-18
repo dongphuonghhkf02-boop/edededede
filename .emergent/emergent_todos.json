@@ -1,0 +1,50 @@
+[
+  {
+    "content": "Backend: Create modular `products/` package",
+    "status": "completed"
+  },
+  {
+    "content": "Backend: Wire products router + seeding into server.py",
+    "status": "completed"
+  },
+  {
+    "content": "Frontend: Create products-api.ts client + types",
+    "status": "completed"
+  },
+  {
+    "content": "Frontend: Refactor catalog.tsx to use API",
+    "status": "completed"
+  },
+  {
+    "content": "Frontend: Refactor desktop1.tsx (product page) → fetch by slug, render dynamic tabs",
+    "status": "completed"
+  },
+  {
+    "content": "Frontend: Add /product/:slug + /products/:slug routes",
+    "status": "completed"
+  },
+  {
+    "content": "Frontend: Refactor header-search to use API + navigate to /product/:slug",
+    "status": "completed"
+  },
+  {
+    "content": "Frontend: Create AdminProducts.tsx (list + status toggle + HOT toggle + delete)",
+    "status": "completed"
+  },
+  {
+    "content": "Frontend: Create AdminProductEdit.tsx (full form with image upload + characteristics editor)",
+    "status": "completed"
+  },
+  {
+    "content": "Frontend: Create AdminProductCategories.tsx (manage filter categories — labels, order, active)",
+    "status": "completed"
+  },
+  {
+    "content": "Frontend: Wire admin routes in App.tsx + sidebar nav",
+    "status": "completed"
+  },
+  {
+    "content": "Final: End-to-end testing with testing_agent_v3",
+    "status": "in_progress"
+  }
+]

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import Tag1 from "./tag1";
 import Star1 from "./star1";
 import Cube1 from "./cube1";
@@ -13,10 +14,18 @@ import SecondaryButton1 from "./secondary-button1";
 import ShieldError1 from "./shield-error1";
 import Clock1 from "./clock1";
 import { useCart } from "../../context/CartContext";
+import { useCallbackModal } from "../../context/CallbackContext";
+import type { Product } from "../../lib/products-api";
 import styles from "./frame-component6.module.css";
 
 export type FrameComponent6Type = {
   className?: string;
+  /**
+   * Optional dynamic product fetched from the API.
+   * When provided, every visible field on the page is sourced from it.
+   * Without it the component falls back to the static demo (ФЛОРЕС).
+   */
+  product?: Product | null;
 };
 
 /* Изображения товара: main = крупное фото, thumb = миниатюра 64x64
@@ -42,28 +51,76 @@ const VOLUME_OPTIONS: Array<{ label: string; price: number; perLitre: number }> 
   { label: "10Л", price: 4500, perLitre: 450 },
 ];
 
-const FrameComponent6: React.FC<FrameComponent6Type> = ({ className = "" }) => {
+const FrameComponent6: React.FC<FrameComponent6Type> = ({ className = "", product = null }) => {
   const [activeImage, setActiveImage] = useState(0);
   const [selectedVolumeIndex, setSelectedVolumeIndex] = useState(1); // 5Л
   const [quantity, setQuantity] = useState(1);
   const [deliveryOpen, setDeliveryOpen] = useState(false);
 
   const { addItem, openCart } = useCart();
+  const { openModal: openCallback } = useCallbackModal();
 
-  const current = PRODUCT_IMAGES[activeImage];
-  const selectedVolume = VOLUME_OPTIONS[selectedVolumeIndex];
+  /* ===== Derived product fields (real product overrides demo data) ===== */
+  const productImages = useMemo(() => {
+    if (product) {
+      const photos = (product.photos && product.photos.length > 0)
+        ? product.photos
+        : (product.photo ? [product.photo] : []);
+      if (photos.length > 0) {
+        return photos.map((src, i) => ({
+          main: src,
+          thumb: src,
+          alt: `${product.name} — фото ${i + 1}`,
+        }));
+      }
+    }
+    return PRODUCT_IMAGES;
+  }, [product]);
+
+  const volumeOptions = useMemo(() => {
+    if (product && product.variants && product.variants.length > 0) {
+      return product.variants.map((v) => {
+        const label = (v.volume || "").replace(/\s+/g, "");
+        const perLitre = Math.round(v.price);
+        return { label, price: v.price, perLitre };
+      });
+    }
+    if (product) {
+      // Synthesize tiered prices around base "per litre" — 1Л / 5Л / 10Л
+      const perL = Math.round(product.price);
+      return [
+        { label: "1Л",  price: perL,        perLitre: perL },
+        { label: "5Л",  price: perL * 5,    perLitre: perL },
+        { label: "10Л", price: Math.round(perL * 10 * 0.95), perLitre: Math.round(perL * 0.95) },
+      ];
+    }
+    return VOLUME_OPTIONS;
+  }, [product]);
+
+  const current = productImages[Math.min(activeImage, productImages.length - 1)] || productImages[0];
+  const selectedVolume = volumeOptions[Math.min(selectedVolumeIndex, volumeOptions.length - 1)] || volumeOptions[0];
   const totalPrice = selectedVolume.price * quantity;
+
+  const title = product ? product.name : `Антистресант зі стимулюючим ефектом "ФЛОРЕС" (FLORES)`;
+  const description = product
+    ? product.short_desc
+    : "Удосконалений органічний стимулятор росту для підвищення врожайності сільськогосподарських культур. Cприяє швидкому відновленню біохімічних процесів у рослині.";
+  const breadcrumbCategoryLabel = product ? (product.category || "Каталог") : "Макро та мікроелементи";
+  const ratingNumber = product ? product.rating : 4.9;
+  const reviews = product ? product.reviews : 100;
+  const inStock = product ? product.in_stock : true;
+  const productId = product ? product.id : "flores";
 
   const handleAddToCart = () => {
     addItem({
-      id: `flores-${selectedVolume.label}`,
-      productId: "flores",
-      name: "Антистресант \"ФЛОРЕС\" (FLORES)",
-      category: "макро та мікроелементи",
+      id: `${productId}-${selectedVolume.label}`,
+      productId,
+      name: title,
+      category: breadcrumbCategoryLabel,
       volume: selectedVolume.label.replace("Л", " Л"),
       price: selectedVolume.price,
       quantity,
-      image: PRODUCT_IMAGES[0].main,
+      image: current?.main || PRODUCT_IMAGES[0].main,
     });
     openCart();
   };
@@ -73,11 +130,9 @@ const FrameComponent6: React.FC<FrameComponent6Type> = ({ className = "" }) => {
       <div className={styles.productSection}>
         {/* === BREADCRUMBS ============================================== */}
         <div className={styles.productHeader}>
-          <div className={styles.breadcrumb}>Головна/</div>
-          <div className={styles.breadcrumb}>Макро та мікроелементи/</div>
-          <div className={styles.flores}>
-            Антистресант зі стимулюючим ефектом "ФЛОРЕС" (FLORES)
-          </div>
+          <Link to="/" className={styles.breadcrumb}>Головна/</Link>
+          <Link to="/catalog" className={styles.breadcrumb}>{breadcrumbCategoryLabel}/</Link>
+          <div className={styles.flores}>{title}</div>
         </div>
 
         {/* === MAIN CONTENT ROW (1680 × 1136) ============================ */}
@@ -91,9 +146,9 @@ const FrameComponent6: React.FC<FrameComponent6Type> = ({ className = "" }) => {
               alt={current.alt}
             />
             <div className={styles.thumbStrip}>
-              {PRODUCT_IMAGES.map((img, i) => (
+              {productImages.map((img, i) => (
                 <button
-                  key={img.thumb}
+                  key={`${img.thumb}-${i}`}
                   type="button"
                   className={[
                     styles.thumb,
@@ -141,21 +196,14 @@ const FrameComponent6: React.FC<FrameComponent6Type> = ({ className = "" }) => {
                           />
                         ))}
                       </div>
-                      <div className={styles.ratingNumber}>4.9 (100)</div>
+                      <div className={styles.ratingNumber}>{ratingNumber.toFixed(1)} ({reviews})</div>
                     </div>
                   </div>
                   <h1 className={styles.title}>
-                    <span>{`Антистресант `}</span>
-                    <span className={styles.titleAccent}>
-                      зі стимулюючим ефектом "ФЛОРЕС" (FLORES)
-                    </span>
+                    <span>{title}</span>
                   </h1>
                 </div>
-                <div className={styles.description}>
-                  Удосконалений органічний стимулятор росту для підвищення
-                  врожайності сільськогосподарських культур. Cприяє швидкому
-                  відновленню біохімічних процесів у рослині.
-                </div>
+                <div className={styles.description}>{description}</div>
               </section>
 
               {/* === PARAMETERS CARD 748 × 449 ========================== */}
@@ -165,15 +213,15 @@ const FrameComponent6: React.FC<FrameComponent6Type> = ({ className = "" }) => {
                     <div className={styles.featureCell}>
                       <Cube1 size={20} />
                       <div className={styles.featureText}>
-                        <div className={styles.featureLabel}>Культури</div>
-                        <div className={styles.featureValue}>Всі культури</div>
+                        <div className={styles.featureLabel}>Тара</div>
+                        <div className={styles.featureValue}>{product?.packing || "1, 5, 10 л"}</div>
                       </div>
                     </div>
                     <div className={styles.featureCell}>
                       <Drop1 size={20} dropHeight="20px" dropWidth="20px" />
                       <div className={styles.featureText}>
-                        <div className={styles.featureLabel}>Доза</div>
-                        <div className={styles.featureValue}>0,5-1,0 л/га</div>
+                        <div className={styles.featureLabel}>Норма витрати</div>
+                        <div className={styles.featureValue}>{product?.norm || "0,5-1,0 л/га"}</div>
                       </div>
                     </div>
                     <div className={styles.featureCell}>
@@ -195,8 +243,8 @@ const FrameComponent6: React.FC<FrameComponent6Type> = ({ className = "" }) => {
                     <div className={styles.featureCell}>
                       <Bacteria1 size={20} />
                       <div className={styles.featureText}>
-                        <div className={styles.featureLabel}>Бактерії роду</div>
-                        <div className={styles.featureValue}>Bacillus subtilis</div>
+                        <div className={styles.featureLabel}>Категорія</div>
+                        <div className={styles.featureValue}>{breadcrumbCategoryLabel}</div>
                       </div>
                     </div>
                     <div className={styles.featureCell} aria-hidden="true" />
@@ -210,9 +258,9 @@ const FrameComponent6: React.FC<FrameComponent6Type> = ({ className = "" }) => {
                   <div className={styles.optionsGroup}>
                     <div className={styles.optionsLabel}>Опції об’єму:</div>
                     <div className={styles.volumeChipGroup}>
-                      {VOLUME_OPTIONS.map((item, index) => (
+                      {volumeOptions.map((item, index) => (
                         <VolumeChip1
-                          key={item.label}
+                          key={`${item.label}-${index}`}
                           state={index === selectedVolumeIndex ? "Active" : "Inactive"}
                           prop={item.label}
                           onClick={() => setSelectedVolumeIndex(index)}
@@ -234,9 +282,9 @@ const FrameComponent6: React.FC<FrameComponent6Type> = ({ className = "" }) => {
                 </div>
 
                 <div className={styles.priceRow}>
-                  <div className={styles.availabilityStatus}>
-                    <div className={styles.availabilityDot} />
-                    <div className={styles.availabilityText}>в наявності</div>
+                  <div className={styles.availabilityStatus} data-instock={inStock ? "true" : "false"}>
+                    <div className={styles.availabilityDot} style={!inStock ? { background: "#d9534f" } : undefined} />
+                    <div className={styles.availabilityText}>{inStock ? "в наявності" : "передзамовлення"}</div>
                   </div>
                   <div className={styles.priceParent}>
                     <h2 className={styles.price}>
@@ -267,6 +315,7 @@ const FrameComponent6: React.FC<FrameComponent6Type> = ({ className = "" }) => {
                     prop="Зателефонуйте мені"
                     showIcon
                     size="24"
+                    onClick={openCallback}
                   />
                 </div>
               </section>

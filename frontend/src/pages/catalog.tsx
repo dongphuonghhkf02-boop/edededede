@@ -7,22 +7,18 @@ import Footer1 from "../components/figma/footer1";
 import { useCart } from "../context/CartContext";
 import { useCallbackModal } from "../context/CallbackContext";
 import {
-  ALL_PRODUCTS,
-  CATEGORY_LABELS,
-  searchProducts,
-  type Category,
+  listProducts,
+  listPublicCategories,
+  pickProductCover,
   type Product,
-} from "../data/products";
+  type ProductCategory,
+} from "../lib/products-api";
 import styles from "./catalog.module.css";
 
 /* =================================================================
-   /catalog — Tamic Agro catalog page (with real product data,
-   live search-suggestions and proper rating logic).
+   /catalog — fed by /api/products. Filter taxonomy comes from
+   /api/products/categories (admin-configurable).
    ================================================================= */
-
-const CATEGORY_OPTIONS: { id: Category; label: string }[] = (
-  Object.keys(CATEGORY_LABELS) as Category[]
-).map((id) => ({ id, label: CATEGORY_LABELS[id] }));
 
 const STOCK_OPTIONS = [
   { id: "all", label: "Усі" },
@@ -53,22 +49,15 @@ const SearchIcon: React.FC = () => (
   </svg>
 );
 
-/* Jerrycan icon (matches reference Jerrycan.png — rectangular canister
-   with a handle on top and a spout-cap on top-right). */
 const JerryIcon: React.FC = () => (
   <svg width="12" height="14" viewBox="0 0 12 14" fill="none" aria-hidden="true">
-    {/* handle */}
     <path d="M3 2H6V3" stroke="#2C2C27" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
-    {/* spout cap */}
     <path d="M7.5 2.4L9.5 1.2" stroke="#2C2C27" strokeWidth="1.1" strokeLinecap="round"/>
-    {/* body */}
     <rect x="2" y="3" width="7.5" height="9.5" rx="0.8" stroke="#2C2C27" strokeWidth="1.1"/>
-    {/* label window */}
     <rect x="4" y="6.5" width="3.5" height="3.5" stroke="#2C2C27" strokeWidth="1" strokeLinejoin="round"/>
   </svg>
 );
 
-/* Water-drop icon (Drop.png — classic teardrop). */
 const DropIcon: React.FC = () => (
   <svg width="11" height="14" viewBox="0 0 11 14" fill="none" aria-hidden="true">
     <path d="M5.5 1.2C5.5 1.2 1.5 5.6 1.5 8.8C1.5 11 3.3 12.8 5.5 12.8C7.7 12.8 9.5 11 9.5 8.8C9.5 5.6 5.5 1.2 5.5 1.2Z"
@@ -76,7 +65,6 @@ const DropIcon: React.FC = () => (
   </svg>
 );
 
-/* Lighter olive drop used inside the "Хіт продажу" tag */
 const DropTagIcon: React.FC = () => (
   <svg width="11" height="14" viewBox="0 0 11 14" fill="none" aria-hidden="true">
     <path d="M5.5 1.2C5.5 1.2 1.5 5.6 1.5 8.8C1.5 11 3.3 12.8 5.5 12.8C7.7 12.8 9.5 11 9.5 8.8C9.5 5.6 5.5 1.2 5.5 1.2Z"
@@ -100,7 +88,6 @@ const PhoneIcon: React.FC = () => (
   </svg>
 );
 
-/* Star icon with optional partial fill (0..100%) */
 const Star: React.FC<{ fill?: number; gradId: string }> = ({ fill = 100, gradId }) => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
     <defs>
@@ -117,7 +104,6 @@ const Star: React.FC<{ fill?: number; gradId: string }> = ({ fill = 100, gradId 
 );
 
 const StarRow: React.FC<{ rating: number; ariaId: string }> = ({ rating, ariaId }) => {
-  // 5 stars, fill exact percentage to reflect rating (e.g. 4.9 → 4 full + 1 @ 90%)
   const r = Math.max(0, Math.min(5, rating));
   return (
     <div className={styles.stars} aria-label={`Рейтинг ${r.toFixed(1)} з 5`}>
@@ -135,24 +121,24 @@ const CatalogCard: React.FC<{ p: Product; onAdd: () => void }> = ({ p, onAdd }) 
     <div className={styles.cardImageWrap}>
       <div className={styles.cardImageBg} aria-hidden="true" />
       <div className={styles.cardTags}>
-        {p.isHit && (
+        {p.is_hit && (
           <div className={styles.tagHit}>
             <DropTagIcon /> <span>Хіт продажу</span>
           </div>
         )}
-        {p.isNew && (
+        {p.is_new && (
           <div className={styles.tagNew}>
             <span>Новинка</span>
           </div>
         )}
-        {!p.inStock && (
+        {!p.in_stock && (
           <div className={styles.tagPre}>
             <span>Передзамовлення</span>
           </div>
         )}
       </div>
       <div className={styles.cardPhoto}>
-        <img decoding="async" src={p.photo} alt={p.name} loading="lazy" width={316} height={307} />
+        <img decoding="async" src={pickProductCover(p)} alt={p.name} loading="lazy" width={316} height={307} />
       </div>
     </div>
 
@@ -166,8 +152,8 @@ const CatalogCard: React.FC<{ p: Product; onAdd: () => void }> = ({ p, onAdd }) 
             </div>
           </div>
           <div className={styles.titleGroup}>
-            <Link to="/product" className={styles.cardName}>{p.name}</Link>
-            <div className={styles.cardDesc}>{p.desc}</div>
+            <Link to={`/product/${p.slug}`} className={styles.cardName}>{p.name}</Link>
+            <div className={styles.cardDesc}>{p.short_desc}</div>
           </div>
         </div>
         <div className={styles.specs}>
@@ -196,7 +182,7 @@ const Catalog: React.FC = () => {
   const { addItem, openCart } = useCart();
   const { openModal: openCallback } = useCallbackModal();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [selectedCategories, setSelectedCategories] = useState<Set<Category>>(new Set());
+  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
   const [stock, setStock] = useState<string>("all");
   const [query, setQuery] = useState<string>(searchParams.get("q") ?? "");
   const [searchOpen, setSearchOpen] = useState(false);
@@ -206,29 +192,66 @@ const Catalog: React.FC = () => {
   const [stockOpen, setStockOpen] = useState(false);
   const [page, setPage] = useState<number>(1);
 
+  const [categories, setCategories] = useState<ProductCategory[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [total, setTotal] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
+
   const PAGE_SIZE = 9;
   const searchBoxRef = useRef<HTMLDivElement>(null);
   const sortBoxRef = useRef<HTMLDivElement>(null);
 
-  /* Reflect ?q=… coming from the header search into the toolbar input */
+  /* --- Load categories once --- */
   useEffect(() => {
-    const incoming = searchParams.get("q") ?? "";
-    if (incoming !== query) {
-      setQuery(incoming);
+    let cancelled = false;
+    listPublicCategories()
+      .then((r) => { if (!cancelled) setCategories(r.items); })
+      .catch(() => { /* silent */ });
+    return () => { cancelled = true; };
+  }, []);
+
+  /* --- Reflect ?q= and ?category= incoming URL params --- */
+  useEffect(() => {
+    const incomingQ = searchParams.get("q") ?? "";
+    if (incomingQ !== query) setQuery(incomingQ);
+    const incomingCat = searchParams.get("category") ?? "";
+    if (incomingCat) {
+      setSelectedCategories(new Set(incomingCat.split(",").filter(Boolean)));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  /* When user edits the toolbar query, keep the URL in sync (shareable) */
+  /* --- Persist query to URL --- */
   useEffect(() => {
     const current = searchParams.get("q") ?? "";
     if (query.trim() === current) return;
     const next = new URLSearchParams(searchParams);
-    if (query.trim()) next.set("q", query.trim());
-    else next.delete("q");
+    if (query.trim()) next.set("q", query.trim()); else next.delete("q");
     setSearchParams(next, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
+
+  /* --- Fetch products on every filter change --- */
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    const params: any = {
+      sort,
+      limit: 100,
+    };
+    if (selectedCategories.size > 0) params.category = Array.from(selectedCategories).join(",");
+    if (stock !== "all") params.stock = stock;
+    if (query.trim()) params.q = query.trim();
+    listProducts(params)
+      .then((r) => {
+        if (cancelled) return;
+        setProducts(r.items);
+        setTotal(r.total);
+      })
+      .catch(() => { if (!cancelled) { setProducts([]); setTotal(0); } })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [selectedCategories, stock, query, sort]);
 
   /* close suggestion / sort menus on outside click */
   useEffect(() => {
@@ -244,50 +267,26 @@ const Catalog: React.FC = () => {
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  /* ------------- filtering pipeline ------------- */
-  const filtered = useMemo(() => {
-    let r = ALL_PRODUCTS;
-    if (selectedCategories.size > 0) {
-      r = r.filter((p) => selectedCategories.has(p.category));
-    }
-    if (stock === "in")  r = r.filter((p) => p.inStock);
-    if (stock === "pre") r = r.filter((p) => !p.inStock);
-    if (query.trim()) {
-      const q = query.trim().toLowerCase();
-      r = r.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.desc.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q),
-      );
-    }
-    switch (sort) {
-      case "asc":  r = [...r].sort((a, b) => a.price - b.price); break;
-      case "desc": r = [...r].sort((a, b) => b.price - a.price); break;
-      case "az":   r = [...r].sort((a, b) => a.name.localeCompare(b.name, "uk")); break;
-      case "new":  r = [...r].sort((a, b) => b.createdAt - a.createdAt); break;
-      default: break;
-    }
-    return r;
-  }, [selectedCategories, stock, query, sort]);
-
-  /* live suggestions — fires from the 2-nd character */
-  const suggestions = useMemo(
-    () => searchProducts(query, { minChars: 2, limit: 6 }),
-    [query]
-  );
-
   /* reset page when narrowing the result set */
   useEffect(() => { setPage(1); }, [selectedCategories, stock, query, sort]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  /* Suggestions (local from already-loaded products to keep it simple) */
+  const suggestions = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (q.length < 2) return [];
+    return products.filter((p) =>
+      p.name.toLowerCase().includes(q) || p.short_desc.toLowerCase().includes(q)
+    ).slice(0, 6);
+  }, [query, products]);
+
+  const totalPages = Math.max(1, Math.ceil(products.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const pageItems = useMemo(
-    () => filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
-    [filtered, currentPage]
+    () => products.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [products, currentPage]
   );
 
-  const toggleCategory = (id: Category) =>
+  const toggleCategory = (id: string) =>
     setSelectedCategories((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -297,13 +296,13 @@ const Catalog: React.FC = () => {
 
   const handleAdd = (p: Product) => {
     addItem({
-      id: `${p.id}-${p.defaultVolume}`,
+      id: `${p.id}-${p.default_volume}`,
       productId: p.id,
       name: p.name,
-      category: p.desc,
-      volume: p.defaultVolume,
+      category: p.short_desc,
+      volume: p.default_volume,
       price: p.price,
-      image: p.photo,
+      image: pickProductCover(p),
     });
     openCart();
   };
@@ -316,7 +315,6 @@ const Catalog: React.FC = () => {
   const activeSortLabel =
     SORT_OPTIONS.find((s) => s.id === sort)?.label ?? SORT_OPTIONS[0].label;
 
-  /* highlight matched substring inside suggestion labels */
   const highlight = (text: string, q: string): React.ReactNode => {
     if (!q) return text;
     const idx = text.toLowerCase().indexOf(q.toLowerCase());
@@ -374,22 +372,19 @@ const Catalog: React.FC = () => {
                   </button>
                   {filtersOpen && (
                     <div className={styles.filterOptions}>
-                      {CATEGORY_OPTIONS.map((opt) => {
-                        const count = ALL_PRODUCTS.filter((p) => p.category === opt.id).length;
-                        return (
-                          <label key={opt.id} className={styles.optionRow}>
-                            <input
-                              type="checkbox"
-                              className={styles.checkbox}
-                              checked={selectedCategories.has(opt.id)}
-                              onChange={() => toggleCategory(opt.id)}
-                              data-testid={`filter-cat-${opt.id}`}
-                            />
-                            <span className={styles.optionLabel}>{opt.label}</span>
-                            <span className={styles.optionCount}>{count}</span>
-                          </label>
-                        );
-                      })}
+                      {categories.map((opt) => (
+                        <label key={opt.id} className={styles.optionRow}>
+                          <input
+                            type="checkbox"
+                            className={styles.checkbox}
+                            checked={selectedCategories.has(opt.slug)}
+                            onChange={() => toggleCategory(opt.slug)}
+                            data-testid={`filter-cat-${opt.slug}`}
+                          />
+                          <span className={styles.optionLabel}>{opt.label}</span>
+                          <span className={styles.optionCount}>{opt.count ?? 0}</span>
+                        </label>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -438,7 +433,7 @@ const Catalog: React.FC = () => {
             {/* ============ MAIN ============ */}
             <div className={styles.catalogMain}>
               <section className={styles.toolbar}>
-                <h3 className={styles.toolbarCount}>{filtered.length} продуктів</h3>
+                <h3 className={styles.toolbarCount}>{total} продуктів</h3>
 
                 <div className={styles.toolbarRight}>
                   <div
@@ -480,10 +475,10 @@ const Catalog: React.FC = () => {
                               onClick={() => handlePickSuggestion(p)}
                               data-testid={`catalog-suggest-${p.id}`}
                             >
-                              <img loading="lazy" decoding="async" src={p.photo} alt="" width={40} height={40} />
+                              <img loading="lazy" decoding="async" src={pickProductCover(p)} alt="" width={40} height={40} />
                               <div className={styles.suggestionText}>
                                 <div className={styles.suggestionName}>{highlight(p.name, query.trim())}</div>
-                                <div className={styles.suggestionDesc}>{highlight(p.desc, query.trim())}</div>
+                                <div className={styles.suggestionDesc}>{highlight(p.short_desc, query.trim())}</div>
                               </div>
                               <div className={styles.suggestionPrice}>від {p.price} ₴/л</div>
                             </button>
@@ -526,7 +521,9 @@ const Catalog: React.FC = () => {
               </section>
 
               <div className={styles.cardsGrid} data-testid="catalog-grid">
-                {pageItems.length === 0 ? (
+                {loading ? (
+                  <div className={styles.emptyState}>Завантаження…</div>
+                ) : pageItems.length === 0 ? (
                   <div className={styles.emptyState}>
                     За обраними фільтрами товарів не знайдено.
                   </div>

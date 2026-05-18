@@ -45,6 +45,9 @@ const AdminCultures = lazy(() => import("./pages/admin/AdminCultures"));
 const AdminPartners = lazy(() => import("./pages/admin/AdminPartners"));
 const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
 const AdminBlogEdit = lazy(() => import("./pages/admin/AdminBlogEdit"));
+const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
+const AdminProductEdit = lazy(() => import("./pages/admin/AdminProductEdit"));
+const AdminProductCategories = lazy(() => import("./pages/admin/AdminProductCategories"));
 const BlogPostPage = lazy(() => import("./pages/blog-post"));
 
 const DESIGN_WIDTH = 1920;
@@ -165,6 +168,8 @@ const App: React.FC = () => {
                           <Route path="/" element={<Welcome />} />
                           <Route path="/catalog" element={<Catalog />} />
                           <Route path="/product" element={<Desktop1 />} />
+                          <Route path="/product/:slug" element={<Desktop1 />} />
+                          <Route path="/products/:slug" element={<Desktop1 />} />
                           <Route path="/checkout" element={<Checkout />} />
                           <Route path="/profile" element={<Profile />} />
                           <Route path="/profile/addresses" element={<ProfileAddresses />} />
@@ -189,9 +194,12 @@ const App: React.FC = () => {
                             <Route path="blog" element={<AdminBlog />} />
                             <Route path="blog/new" element={<AdminBlogEdit />} />
                             <Route path="blog/:id/edit" element={<AdminBlogEdit />} />
+                            <Route path="products" element={<AdminProducts />} />
+                            <Route path="products/new" element={<AdminProductEdit />} />
+                            <Route path="products/:id/edit" element={<AdminProductEdit />} />
+                            <Route path="product-categories" element={<AdminProductCategories />} />
                             <Route path="payments" element={<AdminPlaceholder title="Платежі" />} />
                             <Route path="content" element={<AdminPlaceholder title="Контент" />} />
-                            <Route path="products" element={<AdminPlaceholder title="Товари" />} />
                           </Route>
 
                           <Route path="*" element={<Welcome />} />

@@ -32,6 +32,8 @@ const pageTitles: Record<string, { title: string; sub?: string }> = {
   "/admin/payments":      { title: "Платежі",        sub: "Управління фінансами" },
   "/admin/content":       { title: "Контент",        sub: "Сторінки, блог, категорії" },
   "/admin/products":      { title: "Товари",         sub: "Картки товарів та їх наповнення" },
+  "/admin/products/new":  { title: "Новий товар",    sub: "Створення нової картки товару" },
+  "/admin/product-categories": { title: "Категорії товарів", sub: "Налаштування фільтру каталогу" },
 };
 
 const AdminLayout: React.FC = () => {
@@ -172,6 +174,12 @@ const AdminLayout: React.FC = () => {
           <NavLink to="/admin/blog" className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ""}`} data-testid="admin-nav-blog">
             <span className={styles.navIcon}><IconBlog /></span>Блог
           </NavLink>
+          <NavLink to="/admin/products" className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ""}`} data-testid="admin-nav-products">
+            <span className={styles.navIcon}><IconBox /></span>Товари
+          </NavLink>
+          <NavLink to="/admin/product-categories" className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ""}`} data-testid="admin-nav-product-categories">
+            <span className={styles.navIcon}><IconBox /></span>Категорії товарів
+          </NavLink>
         </nav>
 
         <nav className={styles.navGroup}>
@@ -187,9 +195,6 @@ const AdminLayout: React.FC = () => {
           </NavLink>
           <NavLink to="/admin/content" className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ""}`}>
             <span className={styles.navIcon}><IconDoc /></span>Контент
-          </NavLink>
-          <NavLink to="/admin/products" className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ""}`}>
-            <span className={styles.navIcon}><IconBox /></span>Товари
           </NavLink>
         </nav>
 

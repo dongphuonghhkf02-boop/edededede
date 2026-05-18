@@ -20,6 +20,9 @@ export type SecondaryButton1Type = {
 
   /** Icon variant: "phone" (default, used in "Зателефонуйте мені") or "arrow" (used in "Залишити відгук") */
   icon?: "phone" | "arrow";
+
+  /** Optional click handler */
+  onClick?: () => void;
 };
 
 const SecondaryButton1: React.FC<SecondaryButton1Type> = ({
@@ -33,6 +36,7 @@ const SecondaryButton1: React.FC<SecondaryButton1Type> = ({
   secondaryButtonAlignSelf,
   size = 24,
   icon = "phone",
+  onClick,
 }) => {
   const secondaryButtonStyle: CSSProperties = useMemo(() => {
     return {
@@ -49,6 +53,8 @@ const SecondaryButton1: React.FC<SecondaryButton1Type> = ({
       data-type={type}
       data-icon={icon}
       style={secondaryButtonStyle}
+      onClick={onClick}
+      type="button"
     >
       {!!showIcon && icon === "phone" && <Call1 size={size} />}
       {!!showIcon && icon === "arrow" && (
