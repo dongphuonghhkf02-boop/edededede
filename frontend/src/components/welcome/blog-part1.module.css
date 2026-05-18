@@ -1,0 +1,79 @@
+/* Section "Блог агронома" */
+.blogPart {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 284px 120px 284px 120px; /* symmetric 284 top/bottom, 120 left/right */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 80px; /* 80 title → cards */
+  text-align: center;
+  font-family: var(--font-golos-text);
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  width: 100%;
+}
+
+.allLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: 1px solid #1b4332;
+  border-radius: 999px;
+  background: transparent;
+  color: #1b4332;
+  font-family: "Golos Text", var(--font-golos-text), sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+.allLink:hover {
+  background: #1b4332;
+  color: #f9f7f2;
+  transform: translateY(-1px);
+}
+
+.empty {
+  margin: 24px auto 0;
+  color: #5e5e57;
+  font-size: 16px;
+}
+
+/* Title */
+.h2 {
+  margin: 0;
+  font-size: 82px;
+  font-weight: 600;
+  line-height: 120%; /* 98.4px */
+  letter-spacing: -1px;
+  text-transform: uppercase;
+  text-align: left;
+}
+.spanAccent {
+  color: #1b4332; /* brand-accent-secondary-default */
+  font-family: "Golos Text", var(--font-golos-text), sans-serif;
+  font-weight: 600;
+}
+.spanBlack {
+  color: #2c2c27; /* text-black */
+  font-family: Commissioner, var(--font-commissioner), sans-serif;
+  font-weight: 400;
+}
+
+/* Cards row — 3 cards × 544 + 2 × 24 = 1680 = 1920 − 240 */
+.cardsGroup {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 24px;
+}

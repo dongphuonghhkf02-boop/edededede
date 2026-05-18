@@ -1,0 +1,220 @@
+import React, { Suspense, lazy, useLayoutEffect, useRef, useState } from "react";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
+import "./figma-global.css";
+import "./welcome-global.css";
+
+import ScrollToTop from "./ScrollToTop";
+import { CartProvider } from "./context/CartContext";
+import { UserDrawerProvider } from "./context/UserDrawerContext";
+import { AuthProvider } from "./context/AuthContext";
+import { AuthModalProvider } from "./context/AuthModalContext";
+import { CallbackProvider } from "./context/CallbackContext";
+import { EmailModalProvider } from "./context/EmailModalContext";
+import { ContactInfoProvider } from "./context/ContactInfoContext";
+import CartDrawer from "./components/cart/CartDrawer";
+import UserDrawer from "./components/user/UserDrawer";
+import CallbackModal from "./components/callback/CallbackModal";
+import EmailModal from "./components/email/EmailModal";
+import GlobalAuthModal from "./components/auth/GlobalAuthModal";
+
+/* ====================================================================
+ * Code-splitting: route-level lazy loading. Кожна сторінка тягнеться
+ * окремим chunk-ом, що значно прискорює initial load.
+ * ==================================================================== */
+const Welcome = lazy(() => import("./pages/welcome"));
+const Catalog = lazy(() => import("./pages/catalog"));
+const Desktop1 = lazy(() => import("./pages/desktop1"));
+const Checkout = lazy(() => import("./pages/checkout"));
+const Profile = lazy(() => import("./pages/profile"));
+const ProfileAddresses = lazy(() => import("./pages/profile-addresses"));
+const ProfileOrders = lazy(() => import("./pages/profile-orders"));
+const Contacts = lazy(() => import("./pages/contacts"));
+const About = lazy(() => import("./pages/about"));
+const Cultures = lazy(() => import("./pages/cultures"));
+const Blog = lazy(() => import("./pages/blog"));
+
+const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminCallbacks = lazy(() => import("./pages/admin/AdminCallbacks"));
+const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
+const AdminPlaceholder = lazy(() => import("./pages/admin/AdminPlaceholder"));
+const AdminFaq = lazy(() => import("./pages/admin/AdminFaq"));
+const AdminContactInfo = lazy(() => import("./pages/admin/AdminContactInfo"));
+const AdminCultures = lazy(() => import("./pages/admin/AdminCultures"));
+const AdminPartners = lazy(() => import("./pages/admin/AdminPartners"));
+const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
+const AdminBlogEdit = lazy(() => import("./pages/admin/AdminBlogEdit"));
+const BlogPostPage = lazy(() => import("./pages/blog-post"));
+
+const DESIGN_WIDTH = 1920;
+const MIN_DESKTOP_WIDTH = 1024;
+
+/**
+ * AdminAreaWrapper — для /admin* НЕ застосовуємо scale-обгортку,
+ * адмінка має нативний адаптивний layout.
+ */
+const ScaledShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith("/admin");
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState<number>(1);
+  const [outerHeight, setOuterHeight] = useState<number>(0);
+
+  useLayoutEffect(() => {
+    if (isAdmin) return;
+    const compute = () => {
+      const vw = window.innerWidth;
+      const effective = Math.max(vw, MIN_DESKTOP_WIDTH);
+      const s = Math.min(1, effective / DESIGN_WIDTH);
+      const inner = innerRef.current;
+      const realH = inner ? inner.offsetHeight : 0;
+      setScale(s);
+      setOuterHeight(realH * s);
+      if (typeof document !== "undefined") {
+        document.documentElement.style.setProperty("--app-scale", String(s));
+      }
+    };
+    compute();
+    window.addEventListener("resize", compute);
+    let ro: ResizeObserver | undefined;
+    if (innerRef.current && typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(() => compute());
+      ro.observe(innerRef.current);
+    }
+    const onLoad = () => compute();
+    window.addEventListener("load", onLoad);
+    return () => {
+      window.removeEventListener("resize", compute);
+      window.removeEventListener("load", onLoad);
+      ro?.disconnect();
+    };
+  }, [isAdmin]);
+
+  if (isAdmin) {
+    return <>{children}</>;
+  }
+
+  return (
+    <div
+      style={{
+        width: "100%",
+        maxWidth: "100vw",
+        height: outerHeight ? `${outerHeight}px` : "auto",
+        overflow: "hidden",
+        position: "relative",
+      }}
+    >
+      <div
+        ref={innerRef}
+        style={{
+          width: `${DESIGN_WIDTH}px`,
+          transformOrigin: "top left",
+          transform: `scale(${scale})`,
+          willChange: "transform",
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+};
+
+/** Мінімалістичний loader-екран для Suspense fallback */
+const RouteFallback: React.FC = () => (
+  <div
+    aria-busy="true"
+    aria-label="Завантаження..."
+    style={{
+      minHeight: "60vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: "#f5f5f0",
+    }}
+  >
+    <div
+      style={{
+        width: 48,
+        height: 48,
+        borderRadius: "50%",
+        border: "3px solid rgba(27,67,50,0.15)",
+        borderTopColor: "#1b4332",
+        animation: "tamis-spin 0.85s linear infinite",
+      }}
+    />
+    <style>{`@keyframes tamis-spin{to{transform:rotate(360deg)}}`}</style>
+  </div>
+);
+
+const App: React.FC = () => {
+  return (
+    <HelmetProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <AuthModalProvider>
+            <CartProvider>
+              <UserDrawerProvider>
+                <CallbackProvider>
+                  <EmailModalProvider>
+                    <ContactInfoProvider>
+                      <ScaledShell>
+                      <ScrollToTop />
+                      <Suspense fallback={<RouteFallback />}>
+                        <Routes>
+                          <Route path="/" element={<Welcome />} />
+                          <Route path="/catalog" element={<Catalog />} />
+                          <Route path="/product" element={<Desktop1 />} />
+                          <Route path="/checkout" element={<Checkout />} />
+                          <Route path="/profile" element={<Profile />} />
+                          <Route path="/profile/addresses" element={<ProfileAddresses />} />
+                          <Route path="/profile/orders" element={<ProfileOrders />} />
+                          <Route path="/contacts" element={<Contacts />} />
+                          <Route path="/about" element={<About />} />
+                          <Route path="/o-nas" element={<About />} />
+                          <Route path="/cultures" element={<Cultures />} />
+                          <Route path="/kultury" element={<Cultures />} />
+                          <Route path="/blog" element={<Blog />} />
+                          <Route path="/blog/:slug" element={<BlogPostPage />} />
+
+                          {/* Admin routes — захищені AdminLayout-ом */}
+                          <Route path="/admin" element={<AdminLayout />}>
+                            <Route index element={<AdminDashboard />} />
+                            <Route path="callbacks" element={<AdminCallbacks />} />
+                            <Route path="notifications" element={<AdminNotifications />} />
+                            <Route path="faq" element={<AdminFaq />} />
+                            <Route path="contact-info" element={<AdminContactInfo />} />
+                            <Route path="cultures" element={<AdminCultures />} />
+                            <Route path="partners" element={<AdminPartners />} />
+                            <Route path="blog" element={<AdminBlog />} />
+                            <Route path="blog/new" element={<AdminBlogEdit />} />
+                            <Route path="blog/:id/edit" element={<AdminBlogEdit />} />
+                            <Route path="payments" element={<AdminPlaceholder title="Платежі" />} />
+                            <Route path="content" element={<AdminPlaceholder title="Контент" />} />
+                            <Route path="products" element={<AdminPlaceholder title="Товари" />} />
+                          </Route>
+
+                          <Route path="*" element={<Welcome />} />
+                        </Routes>
+                      </Suspense>
+                    </ScaledShell>
+
+                    {/* Drawers + Modals rendered OUTSIDE scale wrapper */}
+                    <CartDrawer />
+                    <UserDrawer />
+                    <CallbackModal />
+                    <EmailModal />
+                    <GlobalAuthModal />
+                    </ContactInfoProvider>
+                  </EmailModalProvider>
+                </CallbackProvider>
+              </UserDrawerProvider>
+            </CartProvider>
+          </AuthModalProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </HelmetProvider>
+  );
+};
+
+export default App;

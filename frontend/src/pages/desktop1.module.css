@@ -1,0 +1,343 @@
+.describeSectionWrapper,
+.desktop {
+  display: flex;
+  box-sizing: border-box;
+}
+.desktop {
+  width: 100%;
+  position: relative;
+  background-color: var(--bg-cream);
+  overflow: hidden;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 0;
+  line-height: normal;
+  letter-spacing: normal;
+}
+.describeSectionWrapper {
+  align-self: stretch;
+  align-items: flex-start;
+  /* 120px розриву між карткою товару і блоком табів.
+   * ВАЖЛИВО: загальна вертикальна "ціна" секції (top + bottom) має дорівнювати
+   * 160px (як і було спочатку), щоб не зрушувати всю сторінку нижче.
+   * Тому padding-bottom скорочено з 160 → 40 (40+120=160). */
+  padding: 120px var(--padding-0) 40px;
+  max-width: 100%;
+  flex-shrink: 0;
+}
+.describeSection {
+  flex: 1;
+  border-radius: var(--br-6);
+  background-color: var(--bg-card);
+  overflow: hidden;
+  flex-direction: column;
+  padding: var(--padding-100) 119px;
+  box-sizing: border-box;
+  position: relative;
+  isolation: isolate;
+  gap: 83px;
+}
+.describeSection,
+.featureColumn,
+.featureColumnWrapper {
+  display: flex;
+  align-items: flex-start;
+  max-width: 100%;
+}
+.featureColumnWrapper {
+  width: 1481px;
+  padding: var(--padding-0) 5px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  text-align: left;
+  font-size: var(--fs-82);
+  color: var(--text-black);
+  font-family: var(--font-golos-text);
+  position: relative;
+  z-index: 3;
+}
+.featureColumn {
+  flex: 1;
+  flex-direction: column;
+}
+.h1 {
+  margin: 0;
+  align-self: stretch;
+  position: relative;
+  font-size: inherit;
+  letter-spacing: var(--ls--1);
+  line-height: 98px;
+  text-transform: uppercase;
+  font-family: inherit;
+}
+.span {
+  font-weight: 600;
+}
+.span2 {
+  color: var(--text-grey);
+  font-family: var(--font-commissioner);
+}
+.span4 {
+  font-weight: 600;
+  font-family: var(--font-golos-text);
+}
+.h2 {
+  align-self: stretch;
+  position: relative;
+  font-size: inherit;
+  letter-spacing: var(--ls--1);
+  line-height: 120%;
+  text-transform: uppercase;
+  font-weight: 400;
+  font-family: var(--font-commissioner);
+  color: var(--text-grey);
+  z-index: 2;
+  margin: -9px 0 0;
+}
+.textBlockWrapper {
+  width: 648px;
+  padding: var(--padding-0) var(--padding-1);
+  box-sizing: border-box;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 3;
+}
+.chaineSectionWrapper,
+.textBlock,
+.textBlockWrapper {
+  display: flex;
+  align-items: flex-start;
+  max-width: 100%;
+}
+.textBlock {
+  flex: 1;
+  flex-direction: column;
+  gap: 139px;
+}
+.chaineSectionWrapper {
+  align-self: stretch;
+  padding: var(--padding-0);
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+.backgroundNoise,
+.chaineSection {
+  position: relative;
+  background-color: var(--brand-accent-secondary-hover);
+  max-width: 100%;
+}
+.chaineSection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0;
+  box-sizing: border-box;
+  isolation: isolate;
+  gap: 0;
+}
+.backgroundNoise {
+  width: var(--width-1920);
+  height: 1372px;
+  display: none;
+  z-index: 0;
+  flex-shrink: 0;
+}
+.featureBlockParent {
+  align-self: stretch;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--gap-20);
+  max-width: 100%;
+  flex-shrink: 0;
+}
+.imageParent {
+  width: 1315px;
+  height: 911px;
+  position: absolute;
+  margin: 0 !important;
+  top: -838px;
+  left: 0;
+  flex-shrink: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+.imageIcon,
+.imageIcon2 {
+  position: absolute;
+  top: 147px;
+  left: 0;
+  width: 954px;
+  height: 691px;
+  object-fit: cover;
+}
+.imageIcon2 {
+  height: 100%;
+  top: 0;
+  bottom: 0;
+  left: 477px;
+  max-height: 100%;
+  width: 838px;
+  z-index: 5;
+}
+.combinedProducts,
+.combinedProductsWrapper {
+  display: flex;
+  align-items: flex-start;
+  max-width: 100%;
+}
+.combinedProductsWrapper {
+  align-self: stretch;
+  justify-content: center;
+  padding: var(--padding-0) var(--padding-20) 122px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+.combinedProducts {
+  width: var(--width-1680);
+  flex-direction: column;
+  gap: 138px;
+}
+
+/* ===== Tab content (Дозування / Склад / Сумісність / Характеристика) ===== */
+.tabContentWrapper {
+  width: 100%;
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
+  padding: var(--padding-0) 5px;
+  box-sizing: border-box;
+}
+.tabContentInner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  max-width: 900px;
+}
+.tabContentTitle {
+  margin: 0;
+  font-family: var(--font-golos-text);
+  font-size: 56px;
+  font-weight: 600;
+  line-height: 110%;
+  color: var(--text-black);
+  text-transform: uppercase;
+  letter-spacing: var(--ls--1);
+}
+.tabList {
+  margin: 0;
+  padding-left: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-family: var(--font-golos-text);
+  font-size: var(--fs-18);
+  line-height: 140%;
+  color: var(--text-black);
+}
+.tabContentNote {
+  margin: 0;
+  font-family: var(--font-golos-text);
+  font-size: var(--fs-18);
+  line-height: 140%;
+  color: var(--text-black);
+  max-width: 760px;
+}
+@media screen and (max-width: 1275px) {
+  .describeSectionWrapper {
+    /* Зберігаємо первісну сумарну висоту 104px: 78 (top) + 26 (bottom) = 104 */
+    padding-top: 78px;
+    padding-bottom: 26px;
+    box-sizing: border-box;
+  }
+  .describeSection {
+    gap: 41px;
+    padding: 65px 59px;
+    box-sizing: border-box;
+  }
+  .chaineSectionWrapper {
+    padding-bottom: 208px;
+    box-sizing: border-box;
+  }
+  .chaineSection {
+    gap: 314px;
+    padding: 44px var(--padding-60) 82px;
+    box-sizing: border-box;
+  }
+  .featureBlockParent {
+    flex-wrap: wrap;
+  }
+  .combinedProductsWrapper {
+    padding-bottom: 79px;
+    box-sizing: border-box;
+  }
+  .combinedProducts {
+    gap: 69px;
+  }
+}
+@media screen and (max-width: 900px) {
+  .desktop {
+    height: auto;
+  }
+  .describeSectionWrapper {
+    /* Зберігаємо первісну сумарну висоту 68px: 51 (top) + 17 (bottom) = 68 */
+    padding-top: 51px;
+    padding-bottom: 17px;
+    box-sizing: border-box;
+  }
+  .describeSection {
+    gap: var(--gap-21);
+    padding: 42px 29px;
+    box-sizing: border-box;
+  }
+  .h1,
+  .h2 {
+    font-size: var(--fs-41);
+    line-height: var(--lh-59);
+  }
+  .textBlock {
+    gap: 69px;
+  }
+  .chaineSectionWrapper {
+    padding-bottom: 135px;
+    box-sizing: border-box;
+  }
+  .chaineSection {
+    gap: 157px;
+    padding: 29px 30px 53px;
+    box-sizing: border-box;
+  }
+  .combinedProductsWrapper {
+    padding-bottom: 51px;
+    box-sizing: border-box;
+  }
+  .combinedProducts {
+    gap: 34px;
+  }
+}
+@media screen and (max-width: 450px) {
+  .describeSectionWrapper {
+    /* Зберігаємо первісну сумарну висоту 44px: 33 (top) + 11 (bottom) = 44 */
+    padding-top: 33px;
+    padding-bottom: 11px;
+    box-sizing: border-box;
+  }
+  .h1,
+  .h2 {
+    font-size: var(--fs-25);
+    line-height: var(--lh-39);
+  }
+  .textBlock {
+    gap: 35px;
+  }
+  .chaineSectionWrapper {
+    padding-bottom: 88px;
+    box-sizing: border-box;
+  }
+  .combinedProducts {
+    gap: var(--gap-17);
+  }
+}

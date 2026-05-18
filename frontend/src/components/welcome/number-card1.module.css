@@ -1,0 +1,46 @@
+.numberCard {
+  width: 478px;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--gap-20);
+  text-align: left;
+  font-size: var(--fs-82);
+  color: var(--brand-accent-primary-default);
+  font-family: var(--font-golos-text);
+}
+.numberCardChild {
+  align-self: stretch;
+  width: var(--width-2);
+  position: relative;
+  border-right: 2px solid var(--brand-accent-primary-default);
+  box-sizing: border-box;
+}
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--gap-8);
+}
+.h2,
+.h3 {
+  margin: 0;
+  align-self: stretch;
+  position: relative;
+  font-family: inherit;
+  white-space: pre-wrap;
+}
+.h2 {
+  font-size: inherit;
+  letter-spacing: var(--ls--1);
+  line-height: 120%;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.h3 {
+  font-size: var(--fs-28);
+  line-height: 125%;
+  font-weight: 400;
+  color: var(--text-black);
+}

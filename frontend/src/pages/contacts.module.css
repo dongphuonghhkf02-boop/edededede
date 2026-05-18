@@ -1,0 +1,527 @@
+/* ============================================================
+   Contacts page — TAMIS АГРО.
+   Pixel-perfect implementation following the design (PNG).
+   Canvas: 1920px. ScaledShell handles responsive scaling.
+   Side padding: 120px throughout.
+   ============================================================ */
+
+.page {
+  width: 1920px;
+  position: relative;
+  background-color: var(--bg-cream, #f9f7f2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-family: "Golos Text", sans-serif;
+  color: var(--text-black, #2c2c27);
+  line-height: normal;
+}
+
+/* ===== HERO ===== */
+.navbarParent {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+}
+
+.contactSectionWrapper {
+  align-self: stretch;
+  display: flex;
+  justify-content: flex-start;
+  padding: 162px 120px 160px;
+  box-sizing: border-box;
+}
+
+.contactSection {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 80px;
+}
+
+.contactHeader {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 80px;
+  text-align: left;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "Golos Text", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #2c2c27;
+  line-height: 100%;
+}
+.breadcrumb a { color: #2c2c27; text-decoration: none; }
+.breadcrumb a:hover { opacity: 0.7; }
+.breadcrumb .current { color: #2c2c27; }
+
+.parent {
+  align-self: stretch;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.title {
+  margin: 0;
+  width: 828px;
+  font-family: "Commissioner", sans-serif;
+  font-size: 82px;
+  font-weight: 400;
+  letter-spacing: -1px;
+  line-height: 120%;
+  text-transform: uppercase;
+  color: #2c2c27;
+  flex-shrink: 0;
+}
+.titleStrong {
+  font-family: "Golos Text", sans-serif;
+  font-weight: 600;
+  color: #2c2c27;
+}
+.titleMuted {
+  font-family: "Commissioner", sans-serif;
+  font-weight: 400;
+  color: #93928c;
+}
+
+.heroDescription {
+  width: 657px;
+  margin-top: 94px;
+  font-family: "Golos Text", sans-serif;
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 120%;
+  color: #2c2c27;
+  flex-shrink: 0;
+}
+
+.contactInformation {
+  align-self: stretch;
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.heroImage {
+  width: 828px;
+  height: 554px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: block;
+}
+
+.contactData {
+  width: 828px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  text-align: left;
+  flex-shrink: 0;
+}
+
+.contactCard {
+  align-self: stretch;
+  height: 134px;
+  background-color: #ffffff;
+  border-top: 1px solid #e7ebe7;
+  border-bottom: 1px solid #e7ebe7;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  padding: 20px 16px;
+  gap: 20px;
+}
+.cardIcon {
+  width: 60px;
+  height: 60px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.cardIcon img {
+  width: 60px;
+  height: 60px;
+  display: block;
+  object-fit: contain;
+}
+.cardText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+.cardLabel {
+  font-family: "Golos Text", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #828278;
+  line-height: 100%;
+}
+.cardValueMono {
+  font-family: "Manrope", "Golos Text", sans-serif;
+  font-size: 18px;
+  line-height: 150%;
+  font-weight: 600;
+  color: #000;
+}
+.cardValueLight {
+  font-family: "Golos Text", sans-serif;
+  font-size: 18px;
+  line-height: 140%;
+  font-weight: 400;
+  color: #2c2c27;
+}
+/* Click-to-call link */
+.phoneLink {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s ease, opacity 0.15s ease;
+  cursor: pointer;
+}
+.phoneLink:hover {
+  color: #1b4332;
+  text-decoration: underline;
+}
+.phoneLink:active { opacity: 0.8; }
+
+/* ===== CONSULTATION (Не знайшли своє рішення) ===== */
+/* Wheat/sunflower image is the full bg of the block;
+   cream gradient overlays top portion (per design spec). */
+.consultationSection {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0;
+  box-sizing: border-box;
+  position: relative;
+  background-color: var(--bg-cream, #f9f7f2);
+}
+
+.consultationTitleWrap {
+  display: flex;
+  justify-content: center;
+  padding: 0 120px;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 2;
+}
+.consultationTitle {
+  margin: 0;
+  font-family: "Commissioner", sans-serif;
+  font-size: 82px;
+  font-weight: 400;
+  letter-spacing: -1px;
+  line-height: 120%;
+  text-transform: uppercase;
+  color: #2c2c27;
+  text-align: center;
+}
+.consultTitleStrong {
+  font-family: "Golos Text", sans-serif;
+  font-weight: 600;
+  color: #2c2c27;
+}
+.consultTitleMuted {
+  font-family: "Commissioner", sans-serif;
+  font-weight: 400;
+  color: #93928c;
+}
+.consultTitleBlack { color: #2c2c27; }
+
+/* Block that holds the wheat/sunflower bg + content (24-год badge + right text) */
+.consultationBgBlock {
+  align-self: stretch;
+  margin-top: 98px;
+  position: relative;
+  width: 1920px;
+  isolation: isolate;
+  /* Wheat bg image — full bleed */
+  background-image: url("/contacts-consultation-bg.webp");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+/* Cream gradient overlay — fades from cream (top) to transparent (bottom)
+   per spec: linear-gradient(180deg, #F9F7F2 45.83%, rgba(249,247,242,0) 100%) */
+.consultationBgBlock::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #f9f7f2 45.83%, rgba(249, 247, 242, 0) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.consultationContent {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: end;
+  padding: 0 120px 120px;
+  box-sizing: border-box;
+  min-height: 720px;
+  gap: 24px;
+}
+
+/* 24 год badge — bottom-left, sits over the wheat bg */
+.featureBlock {
+  background: rgba(0, 0, 0, 0.20);
+  border-radius: 6px;
+  width: 494px;
+  padding: 8px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #f9f7f2;
+  align-self: end;
+  justify-self: start;
+}
+.featureIcon {
+  width: 60px;
+  height: 60px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.featureText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.featureBig {
+  font-family: "Golos Text", sans-serif;
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 120%;
+  color: #f9f7f2;
+}
+.featureSub {
+  font-family: "Golos Text", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 120%;
+  color: #f9f7f2;
+  max-width: 360px;
+}
+
+/* Right text block "Розкажіть нам про вашу культуру" */
+.textBlock {
+  width: 706px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 32px;
+  align-self: start;
+  justify-self: end;
+  margin-top: 0;
+  margin-bottom: 240px;
+  position: relative;
+}
+.consultationText {
+  font-family: "Golos Text", sans-serif;
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 125%;
+  color: #2c2c27;
+}
+.consultationBold {
+  font-family: "Golos Text", sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 140%;
+  color: #2c2c27;
+}
+.buttonGroup {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+.primaryBtn {
+  cursor: pointer;
+  border: 0;
+  padding: 18px 16px;
+  background-color: #1b4332;
+  align-self: stretch;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #fff;
+  font-family: "Golos Text", sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 140%;
+  transition: background-color 0.18s ease, transform 0.12s ease;
+}
+.primaryBtn:hover { background-color: #133527; }
+.primaryBtn:active { transform: translateY(1px); }
+.phoneText {
+  text-align: center;
+  font-family: "Golos Text", sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 140%;
+  color: #2c2c27;
+}
+
+/* ===== FAQ SECTION (green) ===== */
+.faqSection {
+  align-self: stretch;
+  width: 1920px;
+  background-color: #acb14f;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 120px;
+  box-sizing: border-box;
+  gap: 24px;
+  text-align: left;
+}
+.faqColumn {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 48px;
+  max-height: 910px; /* match image height for symmetric block */
+}
+.faqTitle {
+  margin: 0;
+  text-transform: uppercase;
+  font-size: 82px;
+  line-height: 120%;
+  letter-spacing: -1px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.faqSpanCasti {
+  font-family: "Golos Text", sans-serif;
+  font-weight: 600;
+  color: #f9f7f2;
+}
+.faqSpanZap {
+  font-family: "Commissioner", sans-serif;
+  font-weight: 400;
+  color: #f9f7f2;
+}
+
+/* Scrollable list — preserves layout for any number of FAQ items */
+.faqList {
+  flex: 1;
+  min-height: 0;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(249, 247, 242, 0.6) transparent;
+  padding-right: 8px;
+}
+.faqList::-webkit-scrollbar {
+  width: 6px;
+}
+.faqList::-webkit-scrollbar-track {
+  background: transparent;
+}
+.faqList::-webkit-scrollbar-thumb {
+  background-color: rgba(249, 247, 242, 0.45);
+  border-radius: 9999px;
+}
+.faqList::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(249, 247, 242, 0.75);
+}
+.faqDivider {
+  align-self: stretch;
+  height: 1px;
+  background-color: rgba(249, 247, 242, 0.35);
+}
+.faqItem {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px 0;
+}
+.faqHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  width: 100%;
+  text-align: left;
+}
+.faqQuestion {
+  flex: 1;
+  font-family: "Golos Text", sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: normal;
+  color: #f9f7f2;
+}
+.faqItemOpen .faqQuestion { color: #1b4332; }
+
+.faqToggle {
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
+  border: 1.5px solid #f9f7f2;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #f9f7f2;
+  transition: all 0.18s ease;
+}
+.faqItemOpen .faqToggle {
+  border-color: #1b4332;
+  color: #1b4332;
+}
+
+.faqAnswer {
+  font-family: "Golos Text", sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 140%;
+  color: #f9f7f2;
+  max-width: 660px;
+}
+
+.faqImage {
+  width: 828px;
+  height: 910px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: block;
+}

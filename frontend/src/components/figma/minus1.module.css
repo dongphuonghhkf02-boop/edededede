@@ -1,0 +1,17 @@
+.iconMinus {
+  height: var(--height-20);
+  width: var(--width-20);
+  position: relative;
+}
+.vectorIcon {
+  position: absolute;
+  height: 10%;
+  width: 100%;
+  top: 50%;
+  right: 31%;
+  bottom: 40%;
+  left: 31.5%;
+  max-width: 100%;
+  overflow: hidden;
+  max-height: 100%;
+}

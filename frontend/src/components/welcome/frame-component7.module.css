@@ -1,0 +1,133 @@
+/* ============================================================
+   HERO BLOCK — первый блок Welcome
+   Канвас: 1920 × 1039
+   Большой заголовок:  Commissioner Display, 145px / weight 600
+                       — две строки: «Час біорішень» / «Настав»
+                       — top: 114 (хедер) + 160 (gap) = 274
+                       — центрирован по горизонтали
+   Подзаголовок:       Commissioner H4, 44px / weight 500
+                       — одна строка
+                       — top: 114 (хедер) + 600 (gap) = 714
+                       — центрирован по горизонтали
+   ============================================================ */
+
+.heroSectionWrapper {
+  align-self: stretch;
+  display: flex;
+  align-items: flex-start;
+  max-width: 100%;
+  text-align: left;
+  font-family: var(--font-commissioner), "Commissioner", sans-serif;
+  color: var(--text-cream);
+}
+
+.heroSection {
+  position: relative;
+  width: 100%;
+  height: 1039px;
+  flex: 1;
+  overflow: hidden;
+  background-image: url(/hero-section@3x.webp);
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center top;
+  max-width: 100%;
+}
+
+/* ───── Watermark (X-знак, декор) ───── */
+.watermarkIcon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 1132px;
+  height: 1132px;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.38;
+}
+
+/* ───── БОЛЬШОЙ ЗАГОЛОВОК ───── */
+.heroTitle {
+  position: absolute;
+  top: 274px;                 /* 114 navbar + 160 gap (по дизайну) */
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  z-index: 3;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  font-family: var(--font-commissioner), "Commissioner", sans-serif;
+  font-size: 145px;
+  font-weight: 600;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--text-cream, #FFF8EA);
+  white-space: nowrap;
+
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+}
+
+.heroTitleLine {
+  display: block;
+}
+
+/* ───── ПОДЗАГОЛОВОК ───── */
+.heroSubtitle {
+  position: absolute;
+  top: 714px;                 /* 114 navbar + 600 gap (по дизайну) */
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  z-index: 3;
+
+  font-family: var(--font-commissioner), "Commissioner", sans-serif;
+  font-size: 44px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.005em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--text-cream, #FFF8EA);
+  white-space: nowrap;
+
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.22);
+}
+
+/* ───── Адаптив для узких экранов ───── */
+@media screen and (max-width: 1024px) {
+  .heroTitle {
+    font-size: 92px;
+    top: 220px;
+  }
+  .heroSubtitle {
+    font-size: 30px;
+    top: 540px;
+  }
+  .watermarkIcon {
+    width: 720px;
+    height: 720px;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .heroTitle {
+    font-size: 52px;
+    top: 180px;
+    white-space: normal;
+    line-height: 1.1;
+    max-width: 90vw;
+  }
+  .heroSubtitle {
+    font-size: 18px;
+    top: 380px;
+    white-space: normal;
+    max-width: 88vw;
+  }
+}
