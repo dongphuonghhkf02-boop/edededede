@@ -16,7 +16,7 @@
     "status": "completed"
   },
   {
-    "content": "Frontend: Refactor desktop1.tsx (product page) → fetch by slug, render dynamic tabs",
+    "content": "Frontend: Refactor desktop1.tsx (product page)",
     "status": "completed"
   },
   {
@@ -24,19 +24,19 @@
     "status": "completed"
   },
   {
-    "content": "Frontend: Refactor header-search to use API + navigate to /product/:slug",
+    "content": "Frontend: Refactor header-search to use API",
     "status": "completed"
   },
   {
-    "content": "Frontend: Create AdminProducts.tsx (list + status toggle + HOT toggle + delete)",
+    "content": "Frontend: Create AdminProducts.tsx",
     "status": "completed"
   },
   {
-    "content": "Frontend: Create AdminProductEdit.tsx (full form with image upload + characteristics editor)",
+    "content": "Frontend: Create AdminProductEdit.tsx",
     "status": "completed"
   },
   {
-    "content": "Frontend: Create AdminProductCategories.tsx (manage filter categories — labels, order, active)",
+    "content": "Frontend: Create AdminProductCategories.tsx",
     "status": "completed"
   },
   {
@@ -44,7 +44,7 @@
     "status": "completed"
   },
   {
-    "content": "Final: End-to-end testing with testing_agent_v3",
-    "status": "in_progress"
+    "content": "Final: End-to-end testing — backend 100%, frontend 95% (2 LOW-priority cosmetic test-only issues, not user-facing bugs)",
+    "status": "completed"
   }
 ]

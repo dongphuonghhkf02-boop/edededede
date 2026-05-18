@@ -189,3 +189,35 @@ agent_communication:
         - Public blog detail: breadcrumb, all meta rendered, tags clickable navigate to /blog?tag=…, CTA buttons open modals, inline contact form submits successfully and shows success card.
         - Backend: GET /api/blog/* endpoints, admin CRUD with bearer JWT, image upload PNG/JPG/WEBP, slug uniqueness, status toggle, view-counter bumps on detail GET.
         - Skip drag-and-drop and camera-only flows (LLM agent limitation).
+
+
+  - agent: "main"
+    message: |
+      Phase: Products / Catalog backend + admin (2026-05-18).
+      Deployed repo from GitHub and continued the work.
+
+      Built **modular `backend/products/`** package (no monolith) with submodules:
+        - models.py / security.py / upload.py / utils.py
+        - public_routes.py, admin_routes.py, categories_routes.py
+        - seed.py (20 default products + 5 default filter categories)
+        - router.py (composite)
+      Wired into server.py + static mount `/api/uploads/products/`.
+
+      API (public): /api/products (filters: category, stock, q, sort, pagination), /api/products/{slug}, /api/products/{slug}/related, /api/products/categories, /api/products/search?q=
+      API (admin, JWT): /api/admin/products GET/POST/PATCH/DELETE, /api/admin/products/upload-image, /api/admin/product-categories CRUD + /reorder
+
+      Frontend:
+        - New lib/products-api.ts (typed client)
+        - Catalog refactored to consume API; filter taxonomy now admin-configurable
+        - desktop1.tsx now reads slug → fetches product → renders dynamic tabs (Опис with description_html + image, Дозування/Склад/Сумісність/Характеристика as TabBlock structure)
+        - FrameComponent6 accepts `product` prop — gallery, title, breadcrumb, feature row, volume options, price, in-stock badge all sourced from backend
+        - SecondaryButton1 gained onClick → "Зателефонуйте мені" opens callback modal
+        - Header-search now uses live /api/products/search?q= and navigates to /product/{slug}
+        - App.tsx: added /product/:slug and /products/:slug routes
+        - AdminLayout: new sidebar items Товари + Категорії товарів
+        - AdminProducts.tsx: full table list + status/HOT toggles + delete + search
+        - AdminProductEdit.tsx: full form (main info / опис with image upload / 4 product tabs editor / publishing flags / pricing / category select / photo gallery upload / rating / SEO)
+        - AdminProductCategories.tsx: CRUD + reorder + inline edit + active toggle
+
+      Verified via curl: create/list/patch/delete works for products and categories.
+      Tested by testing_agent_v3 (iteration_3): backend 100% (57/57) — products 27/27 + blog 30/30; frontend 95% — all major flows working. Two LOW-priority findings were test-selector issues (not user-facing bugs).
